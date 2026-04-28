@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronograma NOC - Seguimiento de Tareas</title>
+    <title>Bitácora NOC - AS400</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -14,7 +14,7 @@
             <div class="sidebar-header">
                 <div class="sidebar-logo">
                     <span class="logo-icon">📡</span>
-                    <span class="logo-text">NOC Task Manager</span>
+                    <span class="logo-text">Bitácora NOC</span>
                 </div>
                 <button class="sidebar-toggle" id="sidebarToggle" title="Colapsar menú">
                     <span>☰</span>
@@ -31,16 +31,34 @@
                                 <span class="nav-text">Dashboard</span>
                             </a>
                         </li>
-                        <li class="nav-item" data-view="tasks">
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Tareas AS400</span>
+                    <ul class="nav-menu">
+                        <li class="nav-item" data-view="pollings-argentina">
                             <a href="#" class="nav-link">
-                                <span class="nav-icon">📋</span>
-                                <span class="nav-text">Mis Tareas</span>
+                                <span class="nav-icon">🇦🇷</span>
+                                <span class="nav-text">Pollings Argentina</span>
                             </a>
                         </li>
-                        <li class="nav-item" data-view="reports">
+                        <li class="nav-item" data-view="pollings-regional">
                             <a href="#" class="nav-link">
-                                <span class="nav-icon">📊</span>
-                                <span class="nav-text">Informes</span>
+                                <span class="nav-icon">🌎</span>
+                                <span class="nav-text">Pollings Regional</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" data-view="backups">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon">💾</span>
+                                <span class="nav-text">Backups</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" data-view="procesos">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon">📤</span>
+                                <span class="nav-text">Procesos / Envíos</span>
                             </a>
                         </li>
                     </ul>
@@ -49,11 +67,10 @@
                 <div class="nav-section">
                     <span class="nav-section-title">Gestión</span>
                     <ul class="nav-menu">
-                        <li class="nav-item" data-view="templates">
+                        <li class="nav-item" data-view="reports">
                             <a href="#" class="nav-link">
-                                <span class="nav-icon">📝</span>
-                                <span class="nav-text">Plantillas</span>
-                                <span class="nav-badge soon">Pronto</span>
+                                <span class="nav-icon">📊</span>
+                                <span class="nav-text">Informes</span>
                             </a>
                         </li>
                         <li class="nav-item" data-view="users">
@@ -62,19 +79,6 @@
                                 <span class="nav-text">Usuarios</span>
                             </a>
                         </li>
-                        <li class="nav-item" data-view="history">
-                            <a href="#" class="nav-link">
-                                <span class="nav-icon">📅</span>
-                                <span class="nav-text">Historial</span>
-                                <span class="nav-badge soon">Pronto</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                
-                <div class="nav-section">
-                    <span class="nav-section-title">Sistema</span>
-                    <ul class="nav-menu">
                         <li class="nav-item" data-view="settings">
                             <a href="#" class="nav-link">
                                 <span class="nav-icon">⚙️</span>
@@ -132,6 +136,9 @@
                 </div>
                 <div class="header-right">
                     <div class="header-date" id="headerDate"></div>
+                    <button id="initDayBtn" class="btn btn-secondary" title="Inicializar día">
+                        <span>📋</span> <span class="btn-text">Cargar Plantilla</span>
+                    </button>
                     <button id="reportBtn" class="btn btn-primary">
                         <span>📊</span> <span class="btn-text">Informe</span>
                     </button>
@@ -140,82 +147,182 @@
 
             <!-- Main Content -->
             <main class="main-content">
+                <!-- Date Selector -->
+                <div class="date-bar">
+                    <button id="prevDay" class="btn-nav">◀</button>
+                    <div class="current-date">
+                        <span id="displayDate"></span>
+                    </div>
+                    <button id="nextDay" class="btn-nav">▶</button>
+                    <button id="todayBtn" class="btn btn-today">Hoy</button>
+                </div>
+
                 <!-- Dashboard View -->
                 <div class="view active" id="view-dashboard">
-                    <!-- Date Selector -->
-                    <div class="date-bar">
-                        <button id="prevDay" class="btn-nav">◀</button>
-                        <div class="current-date">
-                            <span id="displayDate"></span>
-                        </div>
-                        <button id="nextDay" class="btn-nav">▶</button>
-                        <button id="todayBtn" class="btn btn-today">Hoy</button>
-                    </div>
-
                     <!-- Stats Summary -->
                     <div class="stats-summary">
-                        <div class="stat-card">
-                            <div class="stat-icon">📋</div>
+                        <div class="stat-card stat-clickable" onclick="navigateTo('pollings-argentina')">
+                            <div class="stat-icon">🇦🇷</div>
                             <div class="stat-info">
-                                <span class="stat-value" id="totalCount">0</span>
-                                <span class="stat-label">Total Tareas</span>
+                                <span class="stat-value" id="argentinaCount">0/0</span>
+                                <span class="stat-label">Pollings Argentina</span>
+                            </div>
+                            <div class="stat-progress">
+                                <div class="stat-progress-fill" id="argentinaProgress"></div>
                             </div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">✅</div>
+                        <div class="stat-card stat-clickable" onclick="navigateTo('pollings-regional')">
+                            <div class="stat-icon">🌎</div>
                             <div class="stat-info">
-                                <span class="stat-value" id="completedCount">0</span>
-                                <span class="stat-label">Completadas</span>
+                                <span class="stat-value" id="regionalCount">0/0</span>
+                                <span class="stat-label">Pollings Regional</span>
+                            </div>
+                            <div class="stat-progress">
+                                <div class="stat-progress-fill" id="regionalProgress"></div>
                             </div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">⏳</div>
+                        <div class="stat-card stat-clickable" onclick="navigateTo('backups')">
+                            <div class="stat-icon">💾</div>
                             <div class="stat-info">
-                                <span class="stat-value" id="pendingCount">0</span>
-                                <span class="stat-label">Pendientes</span>
+                                <span class="stat-value" id="backupsCount">0/0</span>
+                                <span class="stat-label">Backups</span>
+                            </div>
+                            <div class="stat-progress">
+                                <div class="stat-progress-fill" id="backupsProgress"></div>
                             </div>
                         </div>
-                        <div class="stat-card progress-card">
-                            <div class="stat-icon">📈</div>
+                        <div class="stat-card stat-clickable" onclick="navigateTo('procesos')">
+                            <div class="stat-icon">📤</div>
                             <div class="stat-info">
-                                <span class="stat-value" id="progressPercent">0%</span>
-                                <span class="stat-label">Progreso</span>
+                                <span class="stat-value" id="procesosCount">0/0</span>
+                                <span class="stat-label">Procesos / Envíos</span>
                             </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressFill"></div>
+                            <div class="stat-progress">
+                                <div class="stat-progress-fill" id="procesosProgress"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Tasks Container -->
-                    <div class="tasks-container">
-                        <div class="tasks-header">
-                            <h2>Tareas del Día</h2>
-                            <button id="addTaskBtn" class="btn btn-primary">
-                                <span>＋</span> Nueva Tarea
-                            </button>
+                    <!-- Overall Progress -->
+                    <div class="overall-progress-card">
+                        <div class="overall-progress-header">
+                            <h3>📈 Progreso General del Día</h3>
+                            <span class="overall-progress-percent" id="overallPercent">0%</span>
                         </div>
-                        
-                        <div id="tasksList" class="tasks-list">
-                            <!-- Tasks will be rendered here -->
+                        <div class="overall-progress-bar">
+                            <div class="overall-progress-fill" id="overallProgressFill"></div>
                         </div>
+                    </div>
 
-                        <div id="emptyState" class="empty-state hidden">
-                            <span class="empty-icon">📝</span>
-                            <p>No hay tareas para este día</p>
-                            <button class="btn btn-primary" onclick="document.getElementById('addTaskBtn').click()">
-                                Agregar primera tarea
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <h3>⚡ Acciones Rápidas</h3>
+                        <div class="quick-actions-grid">
+                            <button class="quick-action-btn" onclick="initDayFromTemplate()">
+                                <span class="qa-icon">📋</span>
+                                <span class="qa-text">Cargar tareas del día</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="navigateTo('reports')">
+                                <span class="qa-icon">📊</span>
+                                <span class="qa-text">Generar informe</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="exportToExcel()">
+                                <span class="qa-icon">📥</span>
+                                <span class="qa-text">Exportar a Excel</span>
                             </button>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Tasks View -->
-                <div class="view" id="view-tasks">
-                    <div class="view-placeholder">
-                        <span class="placeholder-icon">📋</span>
-                        <h3>Vista de Tareas</h3>
-                        <p>Próximamente: Vista detallada de todas tus tareas organizadas</p>
+                <!-- Pollings Argentina View -->
+                <div class="view" id="view-pollings-argentina">
+                    <div class="tasks-section">
+                        <div class="tasks-section-header">
+                            <h2>🇦🇷 Pollings de Argentina</h2>
+                            <div class="tasks-section-actions">
+                                <span class="task-counter" id="argentinaCounter">0/3 completados</span>
+                            </div>
+                        </div>
+                        
+                        <div class="polling-table">
+                            <div class="polling-table-header">
+                                <div class="polling-col polling-col-name">Polling</div>
+                                <div class="polling-col polling-col-begin">Inicio (Begin)</div>
+                                <div class="polling-col polling-col-end">Fin (End)</div>
+                                <div class="polling-col polling-col-status">Estado</div>
+                                <div class="polling-col polling-col-actions">Acciones</div>
+                            </div>
+                            <div class="polling-table-body" id="pollingsArgentinaList">
+                                <!-- Pollings will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pollings Regional View -->
+                <div class="view" id="view-pollings-regional">
+                    <div class="tasks-section">
+                        <div class="tasks-section-header">
+                            <h2>🌎 Pollings de Regional</h2>
+                            <div class="tasks-section-actions">
+                                <span class="task-counter" id="regionalCounter">0/20 completados</span>
+                            </div>
+                        </div>
+                        
+                        <div class="polling-table">
+                            <div class="polling-table-header">
+                                <div class="polling-col polling-col-name">Polling</div>
+                                <div class="polling-col polling-col-begin">Inicio (Begin)</div>
+                                <div class="polling-col polling-col-end">Fin (End)</div>
+                                <div class="polling-col polling-col-status">Estado</div>
+                                <div class="polling-col polling-col-actions">Acciones</div>
+                            </div>
+                            <div class="polling-table-body" id="pollingsRegionalList">
+                                <!-- Pollings will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Backups View -->
+                <div class="view" id="view-backups">
+                    <div class="tasks-section">
+                        <div class="tasks-section-header">
+                            <h2>💾 Backups AS400</h2>
+                            <div class="tasks-section-actions">
+                                <span class="task-counter" id="backupsCounter">0/3 completados</span>
+                            </div>
+                        </div>
+                        
+                        <div class="backup-table">
+                            <div class="backup-table-header">
+                                <div class="backup-col backup-col-name">Servidor</div>
+                                <div class="backup-col backup-col-job">JOB</div>
+                                <div class="backup-col backup-col-begin">Inicio</div>
+                                <div class="backup-col backup-col-end">Fin</div>
+                                <div class="backup-col backup-col-duration">Duración</div>
+                                <div class="backup-col backup-col-status">Estado</div>
+                            </div>
+                            <div class="backup-table-body" id="backupsList">
+                                <!-- Backups will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Procesos View -->
+                <div class="view" id="view-procesos">
+                    <div class="tasks-section">
+                        <div class="tasks-section-header">
+                            <h2>📤 Procesos / Envío de Archivos</h2>
+                            <div class="tasks-section-actions">
+                                <span class="task-counter" id="procesosCounter">0/10 completados</span>
+                            </div>
+                        </div>
+                        
+                        <div class="procesos-grid" id="procesosList">
+                            <!-- Procesos will be rendered here -->
+                        </div>
                     </div>
                 </div>
                 
@@ -241,7 +348,7 @@
                                         <label for="reportFormat">Formato</label>
                                         <select id="reportFormat">
                                             <option value="text">Texto plano</option>
-                                            <option value="markdown">Markdown</option>
+                                            <option value="excel">Estilo Excel</option>
                                         </select>
                                     </div>
                                 </div>
@@ -301,35 +408,11 @@
                                 <h3>🎨 Apariencia</h3>
                                 <div class="setting-item">
                                     <div class="setting-info">
-                                        <span class="setting-label">Modo oscuro</span>
-                                        <span class="setting-desc">Interfaz con tema oscuro</span>
-                                    </div>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" checked disabled>
-                                        <span class="toggle-slider-setting"></span>
-                                    </label>
-                                </div>
-                                <div class="setting-item">
-                                    <div class="setting-info">
                                         <span class="setting-label">Sidebar colapsado</span>
                                         <span class="setting-desc">Iniciar con el menú colapsado</span>
                                     </div>
                                     <label class="toggle-switch">
                                         <input type="checkbox" id="settingSidebarCollapsed">
-                                        <span class="toggle-slider-setting"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="settings-section">
-                                <h3>🔔 Notificaciones</h3>
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <span class="setting-label">Sonidos</span>
-                                        <span class="setting-desc">Reproducir sonido al completar tarea</span>
-                                    </div>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="settingSounds">
                                         <span class="toggle-slider-setting"></span>
                                     </label>
                                 </div>
@@ -350,76 +433,61 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Placeholder views for coming soon -->
-                <div class="view" id="view-templates">
-                    <div class="view-placeholder">
-                        <span class="placeholder-icon">📝</span>
-                        <h3>Plantillas de Tareas</h3>
-                        <p>Próximamente: Crea plantillas para tareas recurrentes</p>
-                    </div>
-                </div>
-                
-                <div class="view" id="view-history">
-                    <div class="view-placeholder">
-                        <span class="placeholder-icon">📅</span>
-                        <h3>Historial</h3>
-                        <p>Próximamente: Revisa el historial de tareas completadas</p>
-                    </div>
-                </div>
             </main>
 
             <!-- Footer -->
             <footer class="footer">
-                <p>Cronograma NOC © 2024 | Seguimiento de tareas diario</p>
+                <p>Bitácora NOC AS400 © 2024 | Seguimiento de tareas diario</p>
             </footer>
         </div>
     </div>
 
-    <!-- Modal: Agregar/Editar Tarea -->
+    <!-- Modal: Editar Polling/Backup -->
     <div id="taskModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="taskModalTitle">Nueva Tarea</h3>
+                <h3 id="taskModalTitle">Editar Tarea</h3>
                 <button class="modal-close" onclick="closeModal('taskModal')">×</button>
             </div>
             <div class="modal-body">
                 <form id="taskForm">
                     <input type="hidden" id="taskId">
+                    <input type="hidden" id="taskType">
+                    <input type="hidden" id="taskCategory">
+                    
                     <div class="form-group">
-                        <label for="taskName">Nombre de la tarea *</label>
-                        <input type="text" id="taskName" required placeholder="Ej: Revisión de alertas">
+                        <label for="taskName">Nombre</label>
+                        <input type="text" id="taskName" readonly class="readonly-input">
                     </div>
-                    <div class="form-group">
-                        <label for="taskDescription">Descripción</label>
-                        <textarea id="taskDescription" rows="3" placeholder="Detalles adicionales..."></textarea>
-                    </div>
-                    <div class="form-row">
+                    
+                    <!-- Para Pollings y Backups -->
+                    <div class="form-row" id="timeFields">
                         <div class="form-group">
-                            <label for="taskCategory">Categoría</label>
-                            <select id="taskCategory">
-                                <option value="monitoreo">🔍 Monitoreo</option>
-                                <option value="incidentes">🚨 Incidentes</option>
-                                <option value="mantenimiento">🔧 Mantenimiento</option>
-                                <option value="reportes">📊 Reportes</option>
-                                <option value="reuniones">👥 Reuniones</option>
-                                <option value="otros">📌 Otros</option>
-                            </select>
+                            <label for="taskBeginTime">Hora Inicio (Begin)</label>
+                            <input type="time" id="taskBeginTime">
                         </div>
                         <div class="form-group">
-                            <label for="taskPriority">Prioridad</label>
-                            <select id="taskPriority">
-                                <option value="baja">🟢 Baja</option>
-                                <option value="media" selected>🟡 Media</option>
-                                <option value="alta">🟠 Alta</option>
-                                <option value="critica">🔴 Crítica</option>
-                            </select>
+                            <label for="taskEndTime">Hora Fin (End)</label>
+                            <input type="time" id="taskEndTime">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="taskTime">Hora programada</label>
-                        <input type="time" id="taskTime">
+                    
+                    <!-- Para Procesos -->
+                    <div class="form-group hidden" id="statusField">
+                        <label for="taskStatus">Estado</label>
+                        <select id="taskStatus">
+                            <option value="pending">⏳ Pendiente</option>
+                            <option value="ok">✅ OK</option>
+                            <option value="error">❌ Error</option>
+                            <option value="na">— N/A</option>
+                        </select>
                     </div>
+                    
+                    <div class="form-group">
+                        <label for="taskNotes">Notas / Observaciones</label>
+                        <textarea id="taskNotes" rows="2" placeholder="Observaciones adicionales..."></textarea>
+                    </div>
+                    
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Guardar</button>
@@ -459,6 +527,24 @@
         </div>
     </div>
 
+    <!-- Modal: Confirmar Carga de Plantilla -->
+    <div id="initDayModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>📋 Cargar Tareas del Día</h3>
+                <button class="modal-close" onclick="closeModal('initDayModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Esto creará todas las tareas predefinidas para el día seleccionado.</p>
+                <p class="warning-text">⚠️ Si ya existen tareas, se agregarán las faltantes.</p>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('initDayModal')">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmInitDay()">Cargar Tareas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div id="toastContainer" class="toast-container"></div>
 
@@ -468,6 +554,7 @@
     
     <!-- App Scripts -->
     <script src="js/firebase-config.js"></script>
+    <script src="js/noc-tasks.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

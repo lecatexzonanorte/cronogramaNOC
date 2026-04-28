@@ -1609,3 +1609,479 @@ body {
         justify-content: center;
     }
 }
+
+/* ========================================
+   NOC Specific Styles - Pollings, Backups, Procesos
+   ======================================== */
+
+/* Stats with progress */
+.stat-card.stat-clickable {
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card.stat-clickable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.stat-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--bg-primary);
+}
+
+.stat-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--success));
+    transition: width 0.5s ease;
+    width: 0%;
+}
+
+/* Overall Progress Card */
+.overall-progress-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.overall-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.overall-progress-header h3 {
+    font-size: 1.1rem;
+}
+
+.overall-progress-percent {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.overall-progress-bar {
+    height: 12px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.overall-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary), var(--success));
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease;
+    width: 0%;
+}
+
+/* Quick Actions */
+.quick-actions {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.quick-actions h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.quick-action-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-primary);
+    text-align: left;
+}
+
+.quick-action-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.qa-icon {
+    font-size: 1.5rem;
+}
+
+.qa-text {
+    font-weight: 500;
+}
+
+/* Tasks Section */
+.tasks-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.tasks-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.tasks-section-header h2 {
+    font-size: 1.25rem;
+}
+
+.task-counter {
+    background: var(--bg-tertiary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Polling Table */
+.polling-table {
+    width: 100%;
+}
+
+.polling-table-header,
+.polling-table-body {
+    display: contents;
+}
+
+.polling-table-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.polling-table-header > div {
+    background: var(--bg-tertiary);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+}
+
+.polling-row {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.polling-row:hover {
+    background: var(--bg-tertiary);
+}
+
+.polling-row.completed {
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.polling-col {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.polling-col-name { flex: 1; font-weight: 500; gap: 0.75rem; }
+.polling-col-begin { width: 140px; justify-content: center; }
+.polling-col-end { width: 140px; justify-content: center; }
+.polling-col-status { width: 120px; justify-content: center; }
+.polling-col-actions { width: 100px; justify-content: center; gap: 0.5rem; }
+
+.polling-name-icon {
+    font-size: 1.25rem;
+}
+
+.time-input {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    width: 100px;
+    text-align: center;
+}
+
+.time-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.time-empty {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-badge.pending {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning);
+}
+
+.status-badge.completed {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+}
+
+.status-badge.partial {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--primary-light);
+}
+
+/* Action Buttons */
+.action-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.action-btn:hover {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--primary);
+}
+
+.action-btn.success:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: var(--success);
+    color: var(--success);
+}
+
+/* Backup Table */
+.backup-table {
+    width: 100%;
+}
+
+.backup-table-header {
+    display: flex;
+}
+
+.backup-table-header > div {
+    background: var(--bg-tertiary);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+}
+
+.backup-row {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.backup-row:hover {
+    background: var(--bg-tertiary);
+}
+
+.backup-col {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.backup-col-name { flex: 1; font-weight: 500; }
+.backup-col-job { width: 140px; justify-content: center; }
+.backup-col-begin { width: 120px; justify-content: center; }
+.backup-col-end { width: 120px; justify-content: center; }
+.backup-col-duration { width: 100px; justify-content: center; }
+.backup-col-status { width: 100px; justify-content: center; }
+
+.job-badge {
+    background: var(--bg-primary);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.duration-value {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--primary-light);
+}
+
+/* Procesos Grid */
+.procesos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.proceso-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.proceso-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.proceso-card.status-ok {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.proceso-card.status-error {
+    border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.proceso-icon {
+    font-size: 1.75rem;
+}
+
+.proceso-info {
+    flex: 1;
+}
+
+.proceso-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.proceso-status {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Form Styles */
+.readonly-input {
+    background: var(--bg-tertiary) !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.warning-text {
+    color: var(--warning);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+/* Responsive for Tables */
+@media (max-width: 900px) {
+    .polling-row {
+        flex-wrap: wrap;
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+    
+    .polling-col-name {
+        width: 100%;
+        flex: none;
+        background: var(--bg-tertiary);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem;
+    }
+    
+    .polling-col-begin,
+    .polling-col-end {
+        width: 50%;
+        justify-content: flex-start;
+    }
+    
+    .polling-col-begin::before { content: 'Inicio: '; color: var(--text-muted); font-size: 0.75rem; }
+    .polling-col-end::before { content: 'Fin: '; color: var(--text-muted); font-size: 0.75rem; }
+    
+    .polling-col-status,
+    .polling-col-actions {
+        width: 50%;
+    }
+    
+    .polling-table-header {
+        display: none;
+    }
+    
+    .backup-row {
+        flex-wrap: wrap;
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+    
+    .backup-col-name {
+        width: 100%;
+        flex: none;
+        background: var(--bg-tertiary);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem;
+    }
+    
+    .backup-col-job,
+    .backup-col-begin,
+    .backup-col-end,
+    .backup-col-duration,
+    .backup-col-status {
+        width: 50%;
+        justify-content: flex-start;
+    }
+    
+    .backup-table-header {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .procesos-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}

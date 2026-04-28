@@ -1,5 +1,5 @@
 // ========================================
-// Cronograma NOC - Main Application
+// Bitácora NOC - Main Application
 // ========================================
 
 // Application State
@@ -58,19 +58,34 @@ function initElements() {
     elements.displayDate = document.getElementById('displayDate');
     elements.headerDate = document.getElementById('headerDate');
     
-    // Tasks
-    elements.tasksList = document.getElementById('tasksList');
-    elements.emptyState = document.getElementById('emptyState');
+    // Tasks containers
+    elements.pollingsArgentinaList = document.getElementById('pollingsArgentinaList');
+    elements.pollingsRegionalList = document.getElementById('pollingsRegionalList');
+    elements.backupsList = document.getElementById('backupsList');
+    elements.procesosList = document.getElementById('procesosList');
+    
+    // Stats
+    elements.argentinaCount = document.getElementById('argentinaCount');
+    elements.argentinaProgress = document.getElementById('argentinaProgress');
+    elements.regionalCount = document.getElementById('regionalCount');
+    elements.regionalProgress = document.getElementById('regionalProgress');
+    elements.backupsCount = document.getElementById('backupsCount');
+    elements.backupsProgress = document.getElementById('backupsProgress');
+    elements.procesosCount = document.getElementById('procesosCount');
+    elements.procesosProgress = document.getElementById('procesosProgress');
+    elements.overallPercent = document.getElementById('overallPercent');
+    elements.overallProgressFill = document.getElementById('overallProgressFill');
+    
+    // Counters
+    elements.argentinaCounter = document.getElementById('argentinaCounter');
+    elements.regionalCounter = document.getElementById('regionalCounter');
+    elements.backupsCounter = document.getElementById('backupsCounter');
+    elements.procesosCounter = document.getElementById('procesosCounter');
+    
+    // Modal
     elements.taskModal = document.getElementById('taskModal');
     elements.taskForm = document.getElementById('taskForm');
     elements.taskModalTitle = document.getElementById('taskModalTitle');
-    
-    // Stats
-    elements.totalCount = document.getElementById('totalCount');
-    elements.completedCount = document.getElementById('completedCount');
-    elements.pendingCount = document.getElementById('pendingCount');
-    elements.progressPercent = document.getElementById('progressPercent');
-    elements.progressFill = document.getElementById('progressFill');
     
     // Reports
     elements.reportBtn = document.getElementById('reportBtn');
@@ -87,8 +102,10 @@ function initElements() {
     
     // Settings
     elements.settingSidebarCollapsed = document.getElementById('settingSidebarCollapsed');
-    elements.settingSounds = document.getElementById('settingSounds');
     elements.exportDataBtn = document.getElementById('exportDataBtn');
+    
+    // Init day
+    elements.initDayBtn = document.getElementById('initDayBtn');
 }
 
 function initEventListeners() {
@@ -132,9 +149,11 @@ function initEventListeners() {
     document.getElementById('nextDay').addEventListener('click', () => navigateDay(1));
     document.getElementById('todayBtn').addEventListener('click', goToToday);
     
-    // Tasks
-    document.getElementById('addTaskBtn').addEventListener('click', () => openTaskModal());
+    // Task form
     elements.taskForm.addEventListener('submit', handleTaskSubmit);
+    
+    // Init day
+    elements.initDayBtn?.addEventListener('click', initDayFromTemplate);
     
     // Reports
     elements.reportBtn.addEventListener('click', () => navigateTo('reports'));
@@ -228,11 +247,12 @@ function navigateTo(view) {
 function updatePageTitle(view) {
     const titles = {
         dashboard: { title: 'Dashboard', subtitle: 'Resumen de actividades del día' },
-        tasks: { title: 'Mis Tareas', subtitle: 'Gestiona y organiza tus tareas' },
+        'pollings-argentina': { title: 'Pollings Argentina', subtitle: 'Seguimiento de pollings AS400 Argentina' },
+        'pollings-regional': { title: 'Pollings Regional', subtitle: 'Seguimiento de pollings AS400 Regional' },
+        backups: { title: 'Backups', subtitle: 'Seguimiento de backups AS400' },
+        procesos: { title: 'Procesos / Envíos', subtitle: 'Estado de envío de archivos' },
         reports: { title: 'Informes', subtitle: 'Genera y exporta informes de actividades' },
-        templates: { title: 'Plantillas', subtitle: 'Crea plantillas para tareas recurrentes' },
         users: { title: 'Usuarios', subtitle: 'Gestión de usuarios y turnos' },
-        history: { title: 'Historial', subtitle: 'Revisa el historial de tareas completadas' },
         settings: { title: 'Configuración', subtitle: 'Personaliza tu experiencia' }
     };
     
@@ -383,7 +403,6 @@ async function handleUserSubmit(e) {
         elements.userForm.reset();
         await loadUsers();
         
-        // Auto-select new user
         selectUser(docRef.id);
         
     } catch (error) {
@@ -455,7 +474,7 @@ async function deleteUser(userId) {
 async function loadTasks() {
     if (!state.currentUser) {
         state.tasks = [];
-        renderTasks();
+        renderAllTasks();
         return;
     }
     
@@ -469,240 +488,418 @@ async function loadTasks() {
         state.listeners.tasks = db.collection('tasks')
             .where('userId', '==', state.currentUser)
             .where('date', '==', dateKey)
-            .orderBy('time', 'asc')
-            .orderBy('createdAt', 'asc')
             .onSnapshot(snapshot => {
                 state.tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderTasks();
+                renderAllTasks();
             }, error => {
                 console.error('Error in tasks listener:', error);
-                loadTasksFallback();
             });
             
     } catch (error) {
         console.error('Error loading tasks:', error);
-        loadTasksFallback();
     }
 }
 
-async function loadTasksFallback() {
-    const dateKey = getDateKey();
-    try {
-        const snapshot = await db.collection('tasks')
-            .where('userId', '==', state.currentUser)
-            .where('date', '==', dateKey)
-            .get();
+function renderAllTasks() {
+    // Render each category
+    renderPollings('argentina', elements.pollingsArgentinaList);
+    renderPollings('regional', elements.pollingsRegionalList);
+    renderBackups();
+    renderProcesos();
+    
+    // Update stats
+    updateStats();
+}
+
+function renderPollings(category, container) {
+    if (!container) return;
+    
+    const categoryKey = category === 'argentina' ? 'pollings_argentina' : 'pollings_regional';
+    const templateTasks = NOC_TASKS[categoryKey]?.tasks || [];
+    
+    container.innerHTML = '';
+    
+    templateTasks.forEach(templateTask => {
+        const task = state.tasks.find(t => t.templateId === templateTask.id);
         
-        state.tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        state.tasks.sort((a, b) => {
-            if (a.time && b.time) return a.time.localeCompare(b.time);
-            if (a.time) return -1;
-            if (b.time) return 1;
-            return 0;
-        });
-        renderTasks();
-    } catch (error) {
-        console.error('Fallback error:', error);
-        showToast('Error al cargar tareas', 'error');
-    }
-}
-
-function renderTasks() {
-    elements.tasksList.innerHTML = '';
-    
-    const completed = state.tasks.filter(t => t.completed).length;
-    const total = state.tasks.length;
-    const pending = total - completed;
-    const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-    
-    elements.totalCount.textContent = total;
-    elements.completedCount.textContent = completed;
-    elements.pendingCount.textContent = pending;
-    elements.progressPercent.textContent = `${progress}%`;
-    elements.progressFill.style.width = `${progress}%`;
-    
-    if (state.tasks.length === 0) {
-        elements.tasksList.classList.add('hidden');
-        elements.emptyState.classList.remove('hidden');
-        return;
-    }
-    
-    elements.tasksList.classList.remove('hidden');
-    elements.emptyState.classList.add('hidden');
-    
-    state.tasks.forEach(task => {
-        const taskEl = createTaskElement(task);
-        elements.tasksList.appendChild(taskEl);
+        const row = document.createElement('div');
+        row.className = `polling-row ${task?.beginTime && task?.endTime ? 'completed' : ''}`;
+        
+        const icon = category === 'argentina' ? '🇦🇷' : '🌎';
+        const status = getPollingStatus(task);
+        
+        row.innerHTML = `
+            <div class="polling-col polling-col-name">
+                <span class="polling-name-icon">${icon}</span>
+                <span class="polling-name-text">${templateTask.name}</span>
+            </div>
+            <div class="polling-col polling-col-begin">
+                ${task?.beginTime 
+                    ? `<input type="time" class="time-input" value="${task.beginTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'beginTime', this.value)">` 
+                    : `<input type="time" class="time-input" onchange="updateTaskTime('', '${templateTask.id}', 'beginTime', this.value)">`
+                }
+            </div>
+            <div class="polling-col polling-col-end">
+                ${task?.endTime 
+                    ? `<input type="time" class="time-input" value="${task.endTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'endTime', this.value)">` 
+                    : `<input type="time" class="time-input" onchange="updateTaskTime('', '${templateTask.id}', 'endTime', this.value)">`
+                }
+            </div>
+            <div class="polling-col polling-col-status">
+                <span class="status-badge ${status.class}">${status.label}</span>
+            </div>
+            <div class="polling-col polling-col-actions">
+                <button class="action-btn" onclick="openTaskModal('${templateTask.id}', 'polling', '${categoryKey}')" title="Editar">✏️</button>
+            </div>
+        `;
+        
+        container.appendChild(row);
     });
 }
 
-function createTaskElement(task) {
-    const div = document.createElement('div');
-    div.className = `task-item ${task.completed ? 'completed' : ''}`;
-    div.dataset.id = task.id;
+function getPollingStatus(task) {
+    if (!task) return { class: 'pending', label: '⏳ Pendiente' };
+    if (task.beginTime && task.endTime) return { class: 'completed', label: '✅ Completado' };
+    if (task.beginTime || task.endTime) return { class: 'partial', label: '🔄 En progreso' };
+    return { class: 'pending', label: '⏳ Pendiente' };
+}
+
+function renderBackups() {
+    if (!elements.backupsList) return;
     
-    const priorityClass = `priority-${task.priority || 'media'}`;
-    const categoryIcon = getCategoryIcon(task.category);
+    const templateTasks = NOC_TASKS.backups?.tasks || [];
+    elements.backupsList.innerHTML = '';
     
-    div.innerHTML = `
-        <label class="task-toggle">
-            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}', this.checked)">
-            <span class="toggle-slider"></span>
-        </label>
-        <div class="task-content">
-            <div class="task-header">
-                <span class="task-name">${escapeHtml(task.name)}</span>
-                <span class="task-category">${categoryIcon} ${getCategoryLabel(task.category)}</span>
-            </div>
-            ${task.description ? `<p class="task-description">${escapeHtml(task.description)}</p>` : ''}
-            <div class="task-meta">
-                ${task.time ? `<span class="task-time">🕐 ${task.time}</span>` : ''}
-                <span class="task-priority ${priorityClass}">${getPriorityLabel(task.priority)}</span>
-            </div>
-        </div>
-        <div class="task-actions">
-            <button onclick="editTask('${task.id}')" title="Editar">✏️</button>
-            <button class="delete" onclick="deleteTask('${task.id}')" title="Eliminar">🗑️</button>
-        </div>
-    `;
-    
-    return div;
-}
-
-function getCategoryIcon(category) {
-    const icons = {
-        'monitoreo': '🔍',
-        'incidentes': '🚨',
-        'mantenimiento': '🔧',
-        'reportes': '📊',
-        'reuniones': '👥',
-        'otros': '📌'
-    };
-    return icons[category] || '📌';
-}
-
-function getCategoryLabel(category) {
-    const labels = {
-        'monitoreo': 'Monitoreo',
-        'incidentes': 'Incidentes',
-        'mantenimiento': 'Mantenimiento',
-        'reportes': 'Reportes',
-        'reuniones': 'Reuniones',
-        'otros': 'Otros'
-    };
-    return labels[category] || 'Otros';
-}
-
-function getPriorityLabel(priority) {
-    const labels = {
-        'baja': '🟢 Baja',
-        'media': '🟡 Media',
-        'alta': '🟠 Alta',
-        'critica': '🔴 Crítica'
-    };
-    return labels[priority] || '🟡 Media';
-}
-
-async function toggleTask(taskId, completed) {
-    try {
-        await db.collection('tasks').doc(taskId).update({
-            completed,
-            completedAt: completed ? firebase.firestore.FieldValue.serverTimestamp() : null
-        });
+    templateTasks.forEach(templateTask => {
+        const task = state.tasks.find(t => t.templateId === templateTask.id);
         
-        const task = state.tasks.find(t => t.id === taskId);
-        if (task) {
-            task.completed = completed;
-            renderTasks();
-        }
+        const row = document.createElement('div');
+        row.className = `backup-row ${task?.beginTime && task?.endTime ? 'completed' : ''}`;
         
-        showToast(completed ? 'Tarea completada ✅' : 'Tarea pendiente', 'success');
-    } catch (error) {
-        console.error('Error toggling task:', error);
-        showToast('Error al actualizar tarea', 'error');
-    }
+        const status = getPollingStatus(task);
+        
+        row.innerHTML = `
+            <div class="backup-col backup-col-name">
+                <span>💾</span>
+                <span>${templateTask.name}</span>
+            </div>
+            <div class="backup-col backup-col-job">
+                <span class="job-badge">${templateTask.job || '-'}</span>
+            </div>
+            <div class="backup-col backup-col-begin">
+                ${task?.beginTime 
+                    ? `<input type="time" class="time-input" value="${task.beginTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'beginTime', this.value)">` 
+                    : `<input type="time" class="time-input" onchange="updateTaskTime('', '${templateTask.id}', 'beginTime', this.value)">`
+                }
+            </div>
+            <div class="backup-col backup-col-end">
+                ${task?.endTime 
+                    ? `<input type="time" class="time-input" value="${task.endTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'endTime', this.value)">` 
+                    : `<input type="time" class="time-input" onchange="updateTaskTime('', '${templateTask.id}', 'endTime', this.value)">`
+                }
+            </div>
+            <div class="backup-col backup-col-duration">
+                <span class="duration-value">${task?.duration || '-'}</span>
+            </div>
+            <div class="backup-col backup-col-status">
+                <span class="status-badge ${status.class}">${status.label}</span>
+            </div>
+        `;
+        
+        elements.backupsList.appendChild(row);
+    });
 }
 
-function openTaskModal(task = null) {
+function renderProcesos() {
+    if (!elements.procesosList) return;
+    
+    const templateTasks = NOC_TASKS.procesos?.tasks || [];
+    elements.procesosList.innerHTML = '';
+    
+    templateTasks.forEach(templateTask => {
+        const task = state.tasks.find(t => t.templateId === templateTask.id);
+        const status = task?.status || 'pending';
+        
+        const card = document.createElement('div');
+        card.className = `proceso-card status-${status}`;
+        card.onclick = () => cycleProcessStatus(templateTask.id);
+        
+        const statusInfo = PROCESS_STATUS[status] || PROCESS_STATUS.pending;
+        
+        card.innerHTML = `
+            <span class="proceso-icon">📤</span>
+            <div class="proceso-info">
+                <span class="proceso-name">${templateTask.name}</span>
+                <span class="proceso-status">${statusInfo.icon} ${statusInfo.label}</span>
+            </div>
+        `;
+        
+        elements.procesosList.appendChild(card);
+    });
+}
+
+async function cycleProcessStatus(templateId) {
     if (!state.currentUser) {
-        showToast('Por favor, selecciona un usuario primero', 'warning');
+        showToast('Selecciona un usuario primero', 'warning');
         return;
     }
     
-    elements.taskForm.reset();
-    document.getElementById('taskId').value = '';
+    const statuses = ['pending', 'ok', 'error', 'na'];
+    const task = state.tasks.find(t => t.templateId === templateId);
+    const currentStatus = task?.status || 'pending';
+    const currentIndex = statuses.indexOf(currentStatus);
+    const nextStatus = statuses[(currentIndex + 1) % statuses.length];
     
-    if (task) {
-        elements.taskModalTitle.textContent = 'Editar Tarea';
-        document.getElementById('taskId').value = task.id;
-        document.getElementById('taskName').value = task.name;
-        document.getElementById('taskDescription').value = task.description || '';
-        document.getElementById('taskCategory').value = task.category || 'otros';
-        document.getElementById('taskPriority').value = task.priority || 'media';
-        document.getElementById('taskTime').value = task.time || '';
-    } else {
-        elements.taskModalTitle.textContent = 'Nueva Tarea';
+    try {
+        if (task?.id) {
+            await db.collection('tasks').doc(task.id).update({
+                status: nextStatus,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } else {
+            await db.collection('tasks').add({
+                templateId,
+                userId: state.currentUser,
+                date: getDateKey(),
+                status: nextStatus,
+                type: 'proceso',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        
+        showToast(`Estado actualizado a: ${PROCESS_STATUS[nextStatus].label}`, 'success');
+    } catch (error) {
+        console.error('Error updating status:', error);
+        showToast('Error al actualizar estado', 'error');
     }
-    
-    openModal('taskModal');
 }
 
-function editTask(taskId) {
-    const task = state.tasks.find(t => t.id === taskId);
-    if (task) {
-        openTaskModal(task);
+async function updateTaskTime(taskId, templateId, field, value) {
+    if (!state.currentUser) {
+        showToast('Selecciona un usuario primero', 'warning');
+        return;
     }
+    
+    try {
+        if (taskId) {
+            await db.collection('tasks').doc(taskId).update({
+                [field]: value,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } else {
+            const templateTask = getAllNOCTasks().find(t => t.id === templateId);
+            const newTask = {
+                templateId,
+                userId: state.currentUser,
+                date: getDateKey(),
+                [field]: value,
+                type: templateTask?.type || 'polling',
+                category: templateTask?.category || 'otros',
+                name: templateTask?.name || '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            const docRef = await db.collection('tasks').add(newTask);
+            
+            // Calculate duration if we have both times
+            const task = state.tasks.find(t => t.templateId === templateId);
+            if (field === 'endTime' && task?.beginTime) {
+                const duration = calculateDuration(task.beginTime, value);
+                await db.collection('tasks').doc(docRef.id).update({ duration });
+            } else if (field === 'beginTime' && task?.endTime) {
+                const duration = calculateDuration(value, task.endTime);
+                await db.collection('tasks').doc(docRef.id).update({ duration });
+            }
+        }
+        
+        showToast('Hora actualizada', 'success');
+    } catch (error) {
+        console.error('Error updating time:', error);
+        showToast('Error al actualizar hora', 'error');
+    }
+}
+
+function calculateDuration(beginTime, endTime) {
+    if (!beginTime || !endTime) return null;
+    
+    const [bh, bm] = beginTime.split(':').map(Number);
+    const [eh, em] = endTime.split(':').map(Number);
+    
+    let totalMinutes = (eh * 60 + em) - (bh * 60 + bm);
+    if (totalMinutes < 0) totalMinutes += 24 * 60; // Handle overnight
+    
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}
+
+function updateStats() {
+    // Argentina stats
+    const argentinaTasks = NOC_TASKS.pollings_argentina?.tasks || [];
+    const argentinaCompleted = argentinaTasks.filter(t => {
+        const task = state.tasks.find(st => st.templateId === t.id);
+        return task?.beginTime && task?.endTime;
+    }).length;
+    const argentinaTotal = argentinaTasks.length;
+    elements.argentinaCount.textContent = `${argentinaCompleted}/${argentinaTotal}`;
+    elements.argentinaProgress.style.width = argentinaTotal ? `${(argentinaCompleted / argentinaTotal) * 100}%` : '0%';
+    elements.argentinaCounter.textContent = `${argentinaCompleted}/${argentinaTotal} completados`;
+    
+    // Regional stats
+    const regionalTasks = NOC_TASKS.pollings_regional?.tasks || [];
+    const regionalCompleted = regionalTasks.filter(t => {
+        const task = state.tasks.find(st => st.templateId === t.id);
+        return task?.beginTime && task?.endTime;
+    }).length;
+    const regionalTotal = regionalTasks.length;
+    elements.regionalCount.textContent = `${regionalCompleted}/${regionalTotal}`;
+    elements.regionalProgress.style.width = regionalTotal ? `${(regionalCompleted / regionalTotal) * 100}%` : '0%';
+    elements.regionalCounter.textContent = `${regionalCompleted}/${regionalTotal} completados`;
+    
+    // Backups stats
+    const backupsTasks = NOC_TASKS.backups?.tasks || [];
+    const backupsCompleted = backupsTasks.filter(t => {
+        const task = state.tasks.find(st => st.templateId === t.id);
+        return task?.beginTime && task?.endTime;
+    }).length;
+    const backupsTotal = backupsTasks.length;
+    elements.backupsCount.textContent = `${backupsCompleted}/${backupsTotal}`;
+    elements.backupsProgress.style.width = backupsTotal ? `${(backupsCompleted / backupsTotal) * 100}%` : '0%';
+    elements.backupsCounter.textContent = `${backupsCompleted}/${backupsTotal} completados`;
+    
+    // Procesos stats
+    const procesosTasks = NOC_TASKS.procesos?.tasks || [];
+    const procesosCompleted = procesosTasks.filter(t => {
+        const task = state.tasks.find(st => st.templateId === t.id);
+        return task?.status === 'ok';
+    }).length;
+    const procesosTotal = procesosTasks.length;
+    elements.procesosCount.textContent = `${procesosCompleted}/${procesosTotal}`;
+    elements.procesosProgress.style.width = procesosTotal ? `${(procesosCompleted / procesosTotal) * 100}%` : '0%';
+    elements.procesosCounter.textContent = `${procesosCompleted}/${procesosTotal} completados`;
+    
+    // Overall
+    const totalCompleted = argentinaCompleted + regionalCompleted + backupsCompleted + procesosCompleted;
+    const totalTasks = argentinaTotal + regionalTotal + backupsTotal + procesosTotal;
+    const overallPercent = totalTasks ? Math.round((totalCompleted / totalTasks) * 100) : 0;
+    
+    elements.overallPercent.textContent = `${overallPercent}%`;
+    elements.overallProgressFill.style.width = `${overallPercent}%`;
+}
+
+// ========================================
+// Initialize Day from Template
+// ========================================
+async function initDayFromTemplate() {
+    if (!state.currentUser) {
+        showToast('Selecciona un usuario primero', 'warning');
+        return;
+    }
+    
+    if (!confirm('¿Deseas cargar todas las tareas predefinidas para el día de hoy?')) return;
+    
+    const dateKey = getDateKey();
+    let created = 0;
+    
+    const allTemplates = getAllNOCTasks();
+    
+    for (const template of allTemplates) {
+        // Check if already exists
+        const existing = state.tasks.find(t => t.templateId === template.id);
+        if (!existing) {
+            try {
+                await db.collection('tasks').add({
+                    templateId: template.id,
+                    name: template.name,
+                    description: template.description,
+                    type: template.type,
+                    category: template.category,
+                    userId: state.currentUser,
+                    date: dateKey,
+                    status: 'pending',
+                    beginTime: null,
+                    endTime: null,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                created++;
+            } catch (error) {
+                console.error('Error creating task:', error);
+            }
+        }
+    }
+    
+    showToast(`Se cargaron ${created} tareas`, 'success');
+}
+
+// ========================================
+// Task Modal
+// ========================================
+function openTaskModal(templateId, type, category) {
+    const task = state.tasks.find(t => t.templateId === templateId);
+    const template = getAllNOCTasks().find(t => t.id === templateId);
+    
+    elements.taskForm.reset();
+    document.getElementById('taskId').value = task?.id || '';
+    document.getElementById('taskType').value = type;
+    document.getElementById('taskCategory').value = category;
+    document.getElementById('taskName').value = template?.name || '';
+    
+    if (type === 'proceso') {
+        document.getElementById('timeFields').classList.add('hidden');
+        document.getElementById('statusField').classList.remove('hidden');
+        document.getElementById('taskStatus').value = task?.status || 'pending';
+    } else {
+        document.getElementById('timeFields').classList.remove('hidden');
+        document.getElementById('statusField').classList.add('hidden');
+        document.getElementById('taskBeginTime').value = task?.beginTime || '';
+        document.getElementById('taskEndTime').value = task?.endTime || '';
+    }
+    
+    document.getElementById('taskNotes').value = task?.notes || '';
+    elements.taskModalTitle.textContent = `Editar: ${template?.name || 'Tarea'}`;
+    
+    openModal('taskModal');
 }
 
 async function handleTaskSubmit(e) {
     e.preventDefault();
     
-    if (!state.currentUser) {
-        showToast('Por favor, selecciona un usuario primero', 'warning');
-        return;
-    }
+    if (!state.currentUser) return;
     
     const taskId = document.getElementById('taskId').value;
-    const taskData = {
-        name: document.getElementById('taskName').value.trim(),
-        description: document.getElementById('taskDescription').value.trim(),
-        category: document.getElementById('taskCategory').value,
-        priority: document.getElementById('taskPriority').value,
-        time: document.getElementById('taskTime').value,
-        userId: state.currentUser,
-        date: getDateKey(),
+    const type = document.getElementById('taskType').value;
+    const category = document.getElementById('taskCategory').value;
+    const name = document.getElementById('taskName').value;
+    const notes = document.getElementById('taskNotes').value;
+    
+    const updateData = {
+        notes,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
+    if (type === 'proceso') {
+        updateData.status = document.getElementById('taskStatus').value;
+    } else {
+        updateData.beginTime = document.getElementById('taskBeginTime').value;
+        updateData.endTime = document.getElementById('taskEndTime').value;
+        
+        if (updateData.beginTime && updateData.endTime) {
+            updateData.duration = calculateDuration(updateData.beginTime, updateData.endTime);
+        }
+    }
+    
     try {
         if (taskId) {
-            await db.collection('tasks').doc(taskId).update(taskData);
-            showToast('Tarea actualizada correctamente', 'success');
-        } else {
-            taskData.completed = false;
-            taskData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            await db.collection('tasks').add(taskData);
-            showToast('Tarea creada correctamente', 'success');
+            await db.collection('tasks').doc(taskId).update(updateData);
         }
         
         closeModal('taskModal');
-        elements.taskForm.reset();
+        showToast('Tarea actualizada', 'success');
         
     } catch (error) {
         console.error('Error saving task:', error);
-        showToast('Error al guardar tarea', 'error');
-    }
-}
-
-async function deleteTask(taskId) {
-    if (!confirm('¿Estás seguro de eliminar esta tarea?')) return;
-    
-    try {
-        await db.collection('tasks').doc(taskId).delete();
-        showToast('Tarea eliminada', 'success');
-    } catch (error) {
-        console.error('Error deleting task:', error);
-        showToast('Error al eliminar tarea', 'error');
+        showToast('Error al guardar', 'error');
     }
 }
 
@@ -741,11 +938,6 @@ async function generateReportFromView() {
 }
 
 function generateReportText(tasks, dateStr) {
-    const completed = tasks.filter(t => t.completed);
-    const pending = tasks.filter(t => !t.completed);
-    const total = tasks.length;
-    const progress = total > 0 ? Math.round((completed.length / total) * 100) : 0;
-    
     const user = state.users.find(u => u.id === state.currentUser);
     const userName = user ? user.name : 'Usuario';
     
@@ -757,28 +949,64 @@ function generateReportText(tasks, dateStr) {
         day: 'numeric'
     });
     
-    const format = elements.reportFormat?.value || 'text';
+    let text = `═══════════════════════════════════════════════════════════════\n`;
+    text += `                    BITÁCORA NOC - AS400\n`;
+    text += `═══════════════════════════════════════════════════════════════\n\n`;
+    text += `📅 Fecha: ${formattedDate}\n`;
+    text += `👤 Operador: ${userName}\n\n`;
     
-    let text = `📋 INFORME NOC - ${userName}\n`;
-    text += `📅 ${formattedDate}\n`;
-    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    text += `📊 Resumen:\n`;
-    text += `   Total: ${total} | Completadas: ${completed.length} | Pendientes: ${pending.length} | Progreso: ${progress}%\n\n`;
+    // Pollings Argentina
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `🇦🇷 POLLINGS DE ARGENTINA\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     
-    if (completed.length > 0) {
-        text += `✅ Tareas Completadas:\n`;
-        completed.forEach(t => {
-            text += `   • ${t.name}${t.time ? ` (${t.time})` : ''}\n`;
-        });
-        text += `\n`;
-    }
+    NOC_TASKS.pollings_argentina?.tasks.forEach(template => {
+        const task = tasks.find(t => t.templateId === template.id);
+        const begin = task?.beginTime || '--:--';
+        const end = task?.endTime || '--:--';
+        text += `  ${template.name.padEnd(20)} | Begin: ${begin} | End: ${end}\n`;
+    });
     
-    if (pending.length > 0) {
-        text += `⏳ Tareas Pendientes:\n`;
-        pending.forEach(t => {
-            text += `   • ${t.name}${t.time ? ` (${t.time})` : ''}\n`;
-        });
-    }
+    // Pollings Regional
+    text += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `🌎 POLLINGS DE REGIONAL\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    
+    NOC_TASKS.pollings_regional?.tasks.forEach(template => {
+        const task = tasks.find(t => t.templateId === template.id);
+        const begin = task?.beginTime || '--:--';
+        const end = task?.endTime || '--:--';
+        text += `  ${template.name.padEnd(20)} | Begin: ${begin} | End: ${end}\n`;
+    });
+    
+    // Backups
+    text += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `💾 BACKUPS\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `  Servidor           | JOB         | Inicio | Fin   | Duración\n`;
+    text += `  ${'─'.repeat(65)}\n`;
+    
+    NOC_TASKS.backups?.tasks.forEach(template => {
+        const task = tasks.find(t => t.templateId === template.id);
+        const begin = task?.beginTime || '--:--';
+        const end = task?.endTime || '--:--';
+        const duration = task?.duration || '--:--';
+        text += `  ${template.name.padEnd(18)} | ${(template.job || '-').padEnd(11)} | ${begin}  | ${end}  | ${duration}\n`;
+    });
+    
+    // Procesos
+    text += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `📤 PROCESOS / ENVÍO DE ARCHIVOS\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    
+    NOC_TASKS.procesos?.tasks.forEach(template => {
+        const task = tasks.find(t => t.templateId === template.id);
+        const status = task?.status || 'pending';
+        const statusInfo = PROCESS_STATUS[status] || PROCESS_STATUS.pending;
+        text += `  ${template.name.padEnd(25)} | ${statusInfo.icon} ${statusInfo.label}\n`;
+    });
+    
+    text += `\n═══════════════════════════════════════════════════════════════\n`;
     
     return text;
 }
@@ -797,13 +1025,17 @@ function exportReport() {
     
     const a = document.createElement('a');
     a.href = url;
-    a.download = `informe-noc-${elements.reportDateMain.value}.txt`;
+    a.download = `bitacora-noc-${elements.reportDateMain.value}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
     showToast('Informe exportado', 'success');
+}
+
+function exportToExcel() {
+    showToast('Exportación a Excel disponible próximamente', 'info');
 }
 
 // ========================================
@@ -905,3 +1137,9 @@ window.deleteUser = deleteUser;
 window.selectUser = selectUser;
 window.openModal = openModal;
 window.closeModal = closeModal;
+window.navigateTo = navigateTo;
+window.updateTaskTime = updateTaskTime;
+window.cycleProcessStatus = cycleProcessStatus;
+window.openTaskModal = openTaskModal;
+window.initDayFromTemplate = initDayFromTemplate;
+window.exportToExcel = exportToExcel;
