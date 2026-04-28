@@ -275,18 +275,13 @@ function updatePageTitle(view) {
 // Firebase Connection Check
 // ========================================
 async function checkFirebaseConnection() {
-    try {
-        // Intentar acceder a una colección válida en lugar de _test_
-        await db.collection('tasks').limit(1).get();
-        console.log('✅ Firebase conectado correctamente');
-    } catch (error) {
-        console.error('❌ Error de conexión Firebase:', error);
-        // Solo mostrar error si es un error de conexión real, no de permisos
-        if (error.code === 'unavailable' || error.code === 'network-request-failed') {
-            showToast('Error de conexión con Firebase. Verifica tu conexión a internet.', 'error');
-        } else {
-            console.log('Firebase disponible, verificando permisos...');
-        }
+    // Verificar que Firebase esté inicializado
+    if (typeof firebase !== 'undefined' && firebase.app()) {
+        console.log('✅ Firebase inicializado correctamente');
+        console.log('📊 Project ID:', firebase.app().options.projectId);
+    } else {
+        console.error('❌ Firebase no está inicializado');
+        showToast('Error al inicializar Firebase. Recarga la página.', 'error');
     }
 }
 
