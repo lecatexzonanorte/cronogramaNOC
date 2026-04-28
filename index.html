@@ -9,97 +9,371 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
                     <span class="logo-icon">📡</span>
-                    <h1>Cronograma NOC</h1>
+                    <span class="logo-text">NOC Task Manager</span>
                 </div>
-                <div class="header-actions">
-                    <div class="user-selector">
-                        <label for="currentUser">Usuario:</label>
-                        <select id="currentUser">
-                            <option value="">Seleccionar...</option>
-                        </select>
-                    </div>
-                    <button id="addUserBtn" class="btn btn-secondary" title="Agregar usuario">
-                        <span>＋</span>
-                    </button>
-                    <button id="reportBtn" class="btn btn-primary">
-                        <span>📊</span> Informe Diario
-                    </button>
-                </div>
+                <button class="sidebar-toggle" id="sidebarToggle" title="Colapsar menú">
+                    <span>☰</span>
+                </button>
             </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Date Selector -->
-            <div class="date-bar">
-                <button id="prevDay" class="btn-nav">◀</button>
-                <div class="current-date">
-                    <span id="displayDate"></span>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Principal</span>
+                    <ul class="nav-menu">
+                        <li class="nav-item active" data-view="dashboard">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon">🏠</span>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" data-view="tasks">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon">📋</span>
+                                <span class="nav-text">Mis Tareas</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" data-view="reports">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon">📊</span>
+                                <span class="nav-text">Informes</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                <button id="nextDay" class="btn-nav">▶</button>
-                <button id="todayBtn" class="btn btn-today">Hoy</button>
-            </div>
-
-            <!-- Stats Summary -->
-            <div class="stats-summary">
-                <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="completedCount">0</span>
-                        <span class="stat-label">Completadas</span>
-                    </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Gestión</span>
+                    <ul class="nav-menu">
+                        <li class="nav-item" data-view="templates">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon">📝</span>
+                                <span class="nav-text">Plantillas</span>
+                                <span class="nav-badge soon">Pronto</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" data-view="users">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon">👥</span>
+                                <span class="nav-text">Usuarios</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" data-view="history">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon">📅</span>
+                                <span class="nav-text">Historial</span>
+                                <span class="nav-badge soon">Pronto</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">⏳</div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="pendingCount">0</span>
-                        <span class="stat-label">Pendientes</span>
-                    </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Sistema</span>
+                    <ul class="nav-menu">
+                        <li class="nav-item" data-view="settings">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon">⚙️</span>
+                                <span class="nav-text">Configuración</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="stat-card progress-card">
-                    <div class="stat-icon">📈</div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="progressPercent">0%</span>
-                        <span class="stat-label">Progreso</span>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-card" id="userCard">
+                    <div class="user-avatar">
+                        <span id="userAvatarInitial">?</span>
                     </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
+                    <div class="user-info">
+                        <span class="user-name" id="sidebarUserName">Sin usuario</span>
+                        <span class="user-shift" id="sidebarUserShift">Seleccionar usuario</span>
                     </div>
-                </div>
-            </div>
-
-            <!-- Tasks Container -->
-            <div class="tasks-container">
-                <div class="tasks-header">
-                    <h2>📋 Tareas del Día</h2>
-                    <button id="addTaskBtn" class="btn btn-secondary">
-                        <span>＋</span> Nueva Tarea
+                    <button class="user-menu-btn" id="userMenuBtn" title="Cambiar usuario">
+                        <span>▼</span>
                     </button>
                 </div>
                 
-                <div id="tasksList" class="tasks-list">
-                    <!-- Tasks will be rendered here -->
-                </div>
-
-                <div id="emptyState" class="empty-state hidden">
-                    <span class="empty-icon">📝</span>
-                    <p>No hay tareas para este día</p>
-                    <button class="btn btn-primary" onclick="document.getElementById('addTaskBtn').click()">
-                        Agregar primera tarea
-                    </button>
+                <!-- User dropdown -->
+                <div class="user-dropdown hidden" id="userDropdown">
+                    <div class="user-dropdown-header">
+                        <span>Cambiar usuario</span>
+                        <button class="btn-add-user" id="addUserBtn" title="Agregar usuario">
+                            <span>＋</span>
+                        </button>
+                    </div>
+                    <ul class="user-list" id="userDropdownList">
+                        <!-- Users will be rendered here -->
+                    </ul>
                 </div>
             </div>
-        </main>
+        </aside>
+        
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <p>Cronograma NOC © 2024 | Seguimiento de tareas diario</p>
-        </footer>
+        <!-- Main Area -->
+        <div class="main-area">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <span>☰</span>
+                    </button>
+                    <div class="page-title">
+                        <h1 id="pageTitle">Dashboard</h1>
+                        <p class="page-subtitle" id="pageSubtitle">Resumen de actividades del día</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-date" id="headerDate"></div>
+                    <button id="reportBtn" class="btn btn-primary">
+                        <span>📊</span> <span class="btn-text">Informe</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Dashboard View -->
+                <div class="view active" id="view-dashboard">
+                    <!-- Date Selector -->
+                    <div class="date-bar">
+                        <button id="prevDay" class="btn-nav">◀</button>
+                        <div class="current-date">
+                            <span id="displayDate"></span>
+                        </div>
+                        <button id="nextDay" class="btn-nav">▶</button>
+                        <button id="todayBtn" class="btn btn-today">Hoy</button>
+                    </div>
+
+                    <!-- Stats Summary -->
+                    <div class="stats-summary">
+                        <div class="stat-card">
+                            <div class="stat-icon">📋</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="totalCount">0</span>
+                                <span class="stat-label">Total Tareas</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="completedCount">0</span>
+                                <span class="stat-label">Completadas</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⏳</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="pendingCount">0</span>
+                                <span class="stat-label">Pendientes</span>
+                            </div>
+                        </div>
+                        <div class="stat-card progress-card">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="progressPercent">0%</span>
+                                <span class="stat-label">Progreso</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tasks Container -->
+                    <div class="tasks-container">
+                        <div class="tasks-header">
+                            <h2>Tareas del Día</h2>
+                            <button id="addTaskBtn" class="btn btn-primary">
+                                <span>＋</span> Nueva Tarea
+                            </button>
+                        </div>
+                        
+                        <div id="tasksList" class="tasks-list">
+                            <!-- Tasks will be rendered here -->
+                        </div>
+
+                        <div id="emptyState" class="empty-state hidden">
+                            <span class="empty-icon">📝</span>
+                            <p>No hay tareas para este día</p>
+                            <button class="btn btn-primary" onclick="document.getElementById('addTaskBtn').click()">
+                                Agregar primera tarea
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tasks View -->
+                <div class="view" id="view-tasks">
+                    <div class="view-placeholder">
+                        <span class="placeholder-icon">📋</span>
+                        <h3>Vista de Tareas</h3>
+                        <p>Próximamente: Vista detallada de todas tus tareas organizadas</p>
+                    </div>
+                </div>
+                
+                <!-- Reports View -->
+                <div class="view" id="view-reports">
+                    <div class="reports-container">
+                        <div class="reports-header">
+                            <h2>📊 Centro de Informes</h2>
+                            <p>Genera y exporta informes de actividades</p>
+                        </div>
+                        
+                        <div class="report-card">
+                            <div class="report-card-header">
+                                <h3>Generar Informe Diario</h3>
+                            </div>
+                            <div class="report-card-body">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="reportDateMain">Fecha del informe</label>
+                                        <input type="date" id="reportDateMain">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reportFormat">Formato</label>
+                                        <select id="reportFormat">
+                                            <option value="text">Texto plano</option>
+                                            <option value="markdown">Markdown</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="report-actions-main">
+                                    <button id="generateReportBtn" class="btn btn-primary">
+                                        <span>📊</span> Generar Informe
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="reportPreview" class="report-preview hidden">
+                            <div class="report-preview-header">
+                                <h4>Vista previa del informe</h4>
+                                <div class="report-preview-actions">
+                                    <button id="copyReportBtn" class="btn btn-secondary">
+                                        📋 Copiar
+                                    </button>
+                                    <button id="exportReportBtn" class="btn btn-primary">
+                                        📥 Exportar
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="reportContentMain" class="report-content-main">
+                                <!-- Report preview will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Users View -->
+                <div class="view" id="view-users">
+                    <div class="users-container">
+                        <div class="users-header">
+                            <h2>👥 Gestión de Usuarios</h2>
+                            <button id="addUserBtnMain" class="btn btn-primary">
+                                <span>＋</span> Nuevo Usuario
+                            </button>
+                        </div>
+                        
+                        <div class="users-grid" id="usersGrid">
+                            <!-- Users will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings View -->
+                <div class="view" id="view-settings">
+                    <div class="settings-container">
+                        <div class="settings-header">
+                            <h2>⚙️ Configuración</h2>
+                            <p>Personaliza tu experiencia</p>
+                        </div>
+                        
+                        <div class="settings-sections">
+                            <div class="settings-section">
+                                <h3>🎨 Apariencia</h3>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Modo oscuro</span>
+                                        <span class="setting-desc">Interfaz con tema oscuro</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked disabled>
+                                        <span class="toggle-slider-setting"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Sidebar colapsado</span>
+                                        <span class="setting-desc">Iniciar con el menú colapsado</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="settingSidebarCollapsed">
+                                        <span class="toggle-slider-setting"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <h3>🔔 Notificaciones</h3>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Sonidos</span>
+                                        <span class="setting-desc">Reproducir sonido al completar tarea</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="settingSounds">
+                                        <span class="toggle-slider-setting"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <h3>💾 Datos</h3>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Exportar datos</span>
+                                        <span class="setting-desc">Descarga todas tus tareas</span>
+                                    </div>
+                                    <button class="btn btn-secondary" id="exportDataBtn">
+                                        📥 Exportar JSON
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Placeholder views for coming soon -->
+                <div class="view" id="view-templates">
+                    <div class="view-placeholder">
+                        <span class="placeholder-icon">📝</span>
+                        <h3>Plantillas de Tareas</h3>
+                        <p>Próximamente: Crea plantillas para tareas recurrentes</p>
+                    </div>
+                </div>
+                
+                <div class="view" id="view-history">
+                    <div class="view-placeholder">
+                        <span class="placeholder-icon">📅</span>
+                        <h3>Historial</h3>
+                        <p>Próximamente: Revisa el historial de tareas completadas</p>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <p>Cronograma NOC © 2024 | Seguimiento de tareas diario</p>
+            </footer>
+        </div>
     </div>
 
     <!-- Modal: Agregar/Editar Tarea -->
@@ -151,35 +425,6 @@
                         <button type="submit" class="btn btn-primary">Guardar</button>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Informe Diario -->
-    <div id="reportModal" class="modal">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h3>📊 Informe Diario</h3>
-                <button class="modal-close" onclick="closeModal('reportModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="report-date-selector">
-                    <label>Ver informe del:</label>
-                    <input type="date" id="reportDate">
-                </div>
-                
-                <div id="reportContent" class="report-content">
-                    <!-- Report will be rendered here -->
-                </div>
-
-                <div class="report-actions">
-                    <button id="copyReportBtn" class="btn btn-secondary">
-                        📋 Copiar al portapapeles
-                    </button>
-                    <button id="exportReportBtn" class="btn btn-primary">
-                        📥 Exportar
-                    </button>
-                </div>
             </div>
         </div>
     </div>
