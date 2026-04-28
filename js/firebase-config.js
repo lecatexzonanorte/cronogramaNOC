@@ -8,23 +8,38 @@
 // 2. Crea un nuevo proyecto o selecciona uno existente
 // 3. Ve a Configuración del proyecto > General > Tus aplicaciones
 // 4. Agrega una nueva web app o copia la configuración existente
-// 5. Asegúrate de habilitar Firestore Database en tu proyecto
+// 5. Asegúrate de habilitar:
+//    - Firestore Database
+//    - Authentication (Email/Password)
+//
+// Pasos para configurar Authentication:
+// 1. En Firebase Console, ve a "Authentication"
+// 2. Click en "Comenzar"
+// 3. Habilita "Email/Password"
+// 4. Click en "Guardar"
 //
 // Pasos para configurar Firestore:
 // 1. En Firebase Console, ve a "Firestore Database"
 // 2. Click en "Crear base de datos"
-// 3. Selecciona "Comenzar en modo de prueba" (luego puedes ajustar las reglas)
+// 3. Selecciona "Comenzar en modo de prueba" (luego ajusta las reglas)
 // 4. Elige la ubicación más cercana a tu región
 //
-// Reglas de seguridad recomendadas para Firestore (cambiar en la consola):
+// Reglas de seguridad para Firestore (con autenticación):
 // 
 // rules_version = '2';
 // service cloud.firestore {
 //   match /databases/{database}/documents {
-//     match /{document=**} {
-//       allow read, write: if true;  // Para desarrollo
-//       // Para producción, usar autenticación:
-//       // allow read, write: if request.auth != null;
+//     match /tasks/{taskId} {
+//       allow read, write: if request.auth != null;
+//     }
+//     match /users/{userId} {
+//       allow read, write: if request.auth != null;
+//     }
+//     match /reports/{reportId} {
+//       allow read, write: if request.auth != null;
+//     }
+//     match /shifts/{shiftId} {
+//       allow read, write: if request.auth != null;
 //     }
 //   }
 // }
@@ -42,6 +57,9 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
+// Initialize Firebase Authentication
+const auth = firebase.auth();
+
 // Initialize Firestore
 const db = firebase.firestore();
 
@@ -57,3 +75,5 @@ db.enablePersistence()
 
 // Export for use in app.js
 window.db = db;
+window.auth = auth;
+window.firebase = firebase;

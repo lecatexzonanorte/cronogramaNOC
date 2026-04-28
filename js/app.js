@@ -19,15 +19,25 @@ const elements = {};
 // ========================================
 // Initialization
 // ========================================
+let appInitialized = false;
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Only prepare elements - actual init happens after auth
     initElements();
+});
+
+// Called from auth.js when user is authenticated
+function initApp() {
+    if (appInitialized) return;
+    appInitialized = true;
+    
     initEventListeners();
     initSidebarState();
     loadUsers();
     renderCurrentDate();
     updateHeaderDate();
     checkFirebaseConnection();
-});
+}
 
 function initElements() {
     // Sidebar
@@ -1143,3 +1153,6 @@ window.cycleProcessStatus = cycleProcessStatus;
 window.openTaskModal = openTaskModal;
 window.initDayFromTemplate = initDayFromTemplate;
 window.exportToExcel = exportToExcel;
+
+// Export initApp for auth.js
+window.initApp = initApp;
