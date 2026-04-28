@@ -276,11 +276,17 @@ function updatePageTitle(view) {
 // ========================================
 async function checkFirebaseConnection() {
     try {
-        await db.collection('_test_').doc('connection').get();
+        // Intentar acceder a una colección válida en lugar de _test_
+        await db.collection('tasks').limit(1).get();
         console.log('✅ Firebase conectado correctamente');
     } catch (error) {
         console.error('❌ Error de conexión Firebase:', error);
-        showToast('Error de conexión con Firebase. Verifica la configuración.', 'error');
+        // Solo mostrar error si es un error de conexión real, no de permisos
+        if (error.code === 'unavailable' || error.code === 'network-request-failed') {
+            showToast('Error de conexión con Firebase. Verifica tu conexión a internet.', 'error');
+        } else {
+            console.log('Firebase disponible, verificando permisos...');
+        }
     }
 }
 
