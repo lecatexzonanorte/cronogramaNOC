@@ -46,12 +46,13 @@
 // ========================================
 
 const firebaseConfig = {
-    apiKey: "TU_API_KEY_AQUI",
-    authDomain: "TU_PROYECTO.firebaseapp.com",
-    projectId: "TU_PROJECT_ID",
-    storageBucket: "TU_PROYECTO.appspot.com",
-    messagingSenderId: "TU_SENDER_ID",
-    appId: "TU_APP_ID"
+    apiKey: "AIzaSyCwXVyJ4itzIT3G6Ob6OX67T3AzqlV89wY",
+    authDomain: "cronogramanoc.firebaseapp.com",
+    projectId: "cronogramanoc",
+    storageBucket: "cronogramanoc.firebasestorage.app",
+    messagingSenderId: "439432672841",
+    appId: "1:439432672841:web:3ffb5ce12b8733a8337198",
+    measurementId: "G-3E61XX4W3M"
 };
 
 // Initialize Firebase
