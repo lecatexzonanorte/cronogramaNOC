@@ -567,6 +567,7 @@ function renderPollings(category, container) {
         
         const row = document.createElement('div');
         row.className = `polling-row ${task?.beginTime && task?.endTime ? 'completed' : ''}`;
+        row.id = `polling-row-${templateTask.id}`;
         
         const icon = category === 'argentina' ? '🇦🇷' : '🌎';
         const status = getPollingStatus(task);
@@ -578,20 +579,21 @@ function renderPollings(category, container) {
             </div>
             <div class="polling-col polling-col-begin">
                 ${task?.beginTime 
-                    ? `<input type="time" class="time-input" value="${task.beginTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'beginTime', this.value)">` 
-                    : `<input type="time" class="time-input" onchange="updateTaskTime('', '${templateTask.id}', 'beginTime', this.value)">`
+                    ? `<input type="time" class="time-input" id="begin-${templateTask.id}" value="${task.beginTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'beginTime', this.value)">` 
+                    : `<input type="time" class="time-input" id="begin-${templateTask.id}" onchange="updateTaskTime('', '${templateTask.id}', 'beginTime', this.value)">`
                 }
             </div>
             <div class="polling-col polling-col-end">
                 ${task?.endTime 
-                    ? `<input type="time" class="time-input" value="${task.endTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'endTime', this.value)">` 
-                    : `<input type="time" class="time-input" onchange="updateTaskTime('', '${templateTask.id}', 'endTime', this.value)">`
+                    ? `<input type="time" class="time-input" id="end-${templateTask.id}" value="${task.endTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'endTime', this.value)">` 
+                    : `<input type="time" class="time-input" id="end-${templateTask.id}" onchange="updateTaskTime('', '${templateTask.id}', 'endTime', this.value)">`
                 }
             </div>
             <div class="polling-col polling-col-status">
                 <span class="status-badge ${status.class}">${status.label}</span>
             </div>
             <div class="polling-col polling-col-actions">
+                <button class="action-btn" onclick="pastePollingData('${templateTask.id}')" title="Pegar datos del AS400">📋</button>
                 <button class="action-btn" onclick="openTaskModal('${templateTask.id}', 'polling', '${categoryKey}')" title="Editar">✏️</button>
             </div>
         `;
@@ -1172,6 +1174,59 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ========================================
+// Paste Polling Data from AS400
+// ========================================
+function pastePollingData(templateId) {
+    // Create a simple prompt for pasting
+    const text = prompt('Pegá los datos del AS400:\n\nEjemplo:\nBeginni\t29/04/26\t02:39:23\nEnding\t29/04/26\t05:08:55');
+    
+    if (!text) return;
+    
+    // Parse the text to extract times
+    // Format: "Beginni\t29/04/26\t02:39:23" or "Ending\t29/04/26\t05:08:55"
+    const lines = text.split('\n');
+    let beginTime = null;
+    let endTime = null;
+    
+    lines.forEach(line => {
+        // Match time pattern HH:MM:SS
+        const timeMatch = line.match(/(\d{2}:\d{2}:\d{2})/);
+        if (timeMatch) {
+            const time = timeMatch[1].substring(0, 5); // Take only HH:MM
+            
+            if (line.toLowerCase().includes('beginni') || line.toLowerCase().includes('begin')) {
+                beginTime = time;
+            } else if (line.toLowerCase().includes('ending') || line.toLowerCase().includes('end')) {
+                endTime = time;
+            }
+        }
+    });
+    
+    // Update the time fields
+    if (beginTime) {
+        const beginInput = document.getElementById(`begin-${templateId}`);
+        if (beginInput) {
+            beginInput.value = beginTime;
+            updateTaskTime('', templateId, 'beginTime', beginTime);
+        }
+    }
+    
+    if (endTime) {
+        const endInput = document.getElementById(`end-${templateId}`);
+        if (endInput) {
+            endInput.value = endTime;
+            updateTaskTime('', templateId, 'endTime', endTime);
+        }
+    }
+    
+    if (beginTime || endTime) {
+        showToast(`Horas actualizadas: ${beginTime || '-'} → ${endTime || '-'}`, 'success');
+    } else {
+        showToast('No se encontraron horas válidas en el texto', 'warning');
+    }
+}
+
 // Make functions globally available
 window.toggleTask = toggleTask;
 window.editTask = editTask;
@@ -1186,6 +1241,7 @@ window.cycleProcessStatus = cycleProcessStatus;
 window.openTaskModal = openTaskModal;
 window.initDayFromTemplate = initDayFromTemplate;
 window.exportToExcel = exportToExcel;
+window.pastePollingData = pastePollingData;
 
 // Export initApp for auth.js
 window.initApp = initApp;
