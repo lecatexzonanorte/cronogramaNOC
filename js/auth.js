@@ -106,46 +106,9 @@ function showApp() {
     document.getElementById('loginScreen')?.classList.add('hidden');
     document.getElementById('appContainer')?.classList.remove('hidden');
     
-    // Initialize the main app
+    // Initialize the main app (which will handle user creation)
     if (typeof initApp === 'function') {
         initApp();
-    }
-    
-    // Auto-create NOC user profile if logged in with email
-    if (currentUser && currentUser.email) {
-        ensureNOCUser(currentUser.email, currentUser.displayName || currentUser.email.split('@')[0]);
-    }
-}
-
-// Ensure NOC user exists in database
-async function ensureNOCUser(email, name) {
-    try {
-        // Check if user exists
-        const snapshot = await db.collection('users').where('email', '==', email).get();
-        
-        if (snapshot.empty) {
-            // Create new NOC user
-            const docRef = await db.collection('users').add({
-                email: email,
-                name: name,
-                shift: 'mañana',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            console.log('✅ Usuario NOC creado:', email);
-            
-            // Select the new user
-            if (typeof selectUser === 'function') {
-                selectUser(docRef.id);
-            }
-        } else {
-            // User exists, select it
-            const existingUser = snapshot.docs[0];
-            if (typeof selectUser === 'function') {
-                selectUser(existingUser.id);
-            }
-        }
-    } catch (error) {
-        console.error('Error creando usuario NOC:', error);
     }
 }
 

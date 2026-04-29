@@ -325,14 +325,46 @@ async function loadUsers() {
         renderUserDropdown();
         renderUsersGrid();
         
+        // Get authenticated user email
+        const authUser = auth.currentUser;
+        const authEmail = authUser?.email;
+        
         // Restore last user from localStorage
         const lastUser = localStorage.getItem('noc_lastUser');
         if (lastUser && state.users.find(u => u.id === lastUser)) {
             selectUser(lastUser);
+        } else if (authEmail) {
+            // Try to find user by email
+            const userByEmail = state.users.find(u => u.email === authEmail);
+            if (userByEmail) {
+                selectUser(userByEmail.id);
+            } else {
+                // Create new NOC user for this email
+                await createNOCUser(authEmail, authUser.displayName || authEmail.split('@')[0]);
+            }
         }
     } catch (error) {
         console.error('Error loading users:', error);
         showToast('Error al cargar usuarios', 'error');
+    }
+}
+
+async function createNOCUser(email, name) {
+    try {
+        const docRef = await db.collection('users').add({
+            email: email,
+            name: name,
+            shift: 'mañana',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log('✅ Usuario NOC creado:', email);
+        
+        // Add to local state and select
+        state.users.push({ id: docRef.id, email, name, shift: 'mañana' });
+        selectUser(docRef.id);
+        renderUserDropdown();
+    } catch (error) {
+        console.error('Error creando usuario NOC:', error);
     }
 }
 
