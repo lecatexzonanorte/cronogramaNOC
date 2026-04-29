@@ -566,11 +566,10 @@ function renderPollings(category, container) {
         const task = state.tasks.find(t => t.templateId === templateTask.id);
         
         const row = document.createElement('div');
-        row.className = `polling-row ${task?.beginTime && task?.endTime ? 'completed' : ''}`;
+        row.className = 'polling-row';
         row.id = `polling-row-${templateTask.id}`;
         
         const icon = category === 'argentina' ? '🇦🇷' : '🌎';
-        const status = getPollingStatus(task);
         
         row.innerHTML = `
             <div class="polling-col polling-col-name">
@@ -578,23 +577,13 @@ function renderPollings(category, container) {
                 <span class="polling-name-text">${templateTask.name}</span>
             </div>
             <div class="polling-col polling-col-begin">
-                ${task?.beginTime 
-                    ? `<input type="time" class="time-input" id="begin-${templateTask.id}" value="${task.beginTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'beginTime', this.value)">` 
-                    : `<input type="time" class="time-input" id="begin-${templateTask.id}" onchange="updateTaskTime('', '${templateTask.id}', 'beginTime', this.value)">`
-                }
+                <input type="time" class="time-input" id="begin-${templateTask.id}" value="${task?.beginTime || ''}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'beginTime', this.value)">
             </div>
             <div class="polling-col polling-col-end">
-                ${task?.endTime 
-                    ? `<input type="time" class="time-input" id="end-${templateTask.id}" value="${task.endTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'endTime', this.value)">` 
-                    : `<input type="time" class="time-input" id="end-${templateTask.id}" onchange="updateTaskTime('', '${templateTask.id}', 'endTime', this.value)">`
-                }
-            </div>
-            <div class="polling-col polling-col-status">
-                <span class="status-badge ${status.class}">${status.label}</span>
+                <input type="time" class="time-input" id="end-${templateTask.id}" value="${task?.endTime || ''}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'endTime', this.value)">
             </div>
             <div class="polling-col polling-col-actions">
-                <button class="action-btn" onclick="pastePollingData('${templateTask.id}')" title="Pegar datos del AS400">📋</button>
-                <button class="action-btn" onclick="openTaskModal('${templateTask.id}', 'polling', '${categoryKey}')" title="Editar">✏️</button>
+                <button class="action-btn paste-btn" onclick="pastePollingData('${templateTask.id}')" title="Pegar datos del AS400">📋</button>
             </div>
         `;
         
