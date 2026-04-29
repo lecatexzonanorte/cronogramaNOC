@@ -69,7 +69,9 @@ const NOC_TASKS = {
         tasks: [
             { id: 'bkp_semanal_regional', name: 'Regional', description: 'Backup Semanal Regional', type: 'backup', job: 'BKPSEMANAL', frequency: 'semanal' },
             { id: 'bkp_semanal_pinot', name: 'Pinot', description: 'Backup Semanal Pinot', type: 'backup', job: 'BKPSEMANAL', frequency: 'semanal' },
-            { id: 'bkp_semanal_semillon', name: 'Semillon', description: 'Backup Semanal Semillon', type: 'backup', job: 'BKPSEMANAL', frequency: 'semanal' }
+            { id: 'bkp_semanal_semillon', name: 'Semillon', description: 'Backup Semanal Semillon', type: 'backup', job: 'BKPSEMANAL', frequency: 'semanal' },
+            { id: 'bkp_semanal_regdrs', name: 'REGDRS', description: 'Backup Semanal REGDRS', type: 'backup', job: 'BKPSEMANAL', frequency: 'semanal' },
+            { id: 'bkp_semanal_merlot', name: 'Merlot', description: 'Backup Semanal Merlot', type: 'backup', job: 'BKPSEMANAL', frequency: 'semanal' }
         ]
     },
 
@@ -81,7 +83,9 @@ const NOC_TASKS = {
         tasks: [
             { id: 'bkp_mensual_regional', name: 'Regional', description: 'Backup Mensual Regional', type: 'backup', job: 'BKPMENSUAL', frequency: 'mensual' },
             { id: 'bkp_mensual_pinot', name: 'Pinot', description: 'Backup Mensual Pinot', type: 'backup', job: 'BKPMENSUAL', frequency: 'mensual' },
-            { id: 'bkp_mensual_semillon', name: 'Semillon', description: 'Backup Mensual Semillon', type: 'backup', job: 'BKPMENSUAL', frequency: 'mensual' }
+            { id: 'bkp_mensual_semillon', name: 'Semillon', description: 'Backup Mensual Semillon', type: 'backup', job: 'BKPMENSUAL', frequency: 'mensual' },
+            { id: 'bkp_mensual_regdrs', name: 'REGDRS', description: 'Backup Mensual REGDRS', type: 'backup', job: 'BKPMENSUAL', frequency: 'mensual' },
+            { id: 'bkp_mensual_merlot', name: 'Merlot', description: 'Backup Mensual Merlot', type: 'backup', job: 'BKPMENSUAL', frequency: 'mensual' }
         ]
     },
     
