@@ -71,7 +71,9 @@ function initElements() {
     // Tasks containers
     elements.pollingsArgentinaList = document.getElementById('pollingsArgentinaList');
     elements.pollingsRegionalList = document.getElementById('pollingsRegionalList');
-    elements.backupsList = document.getElementById('backupsList');
+    elements.backupsDiariosList = document.getElementById('backupsDiariosList');
+    elements.backupsSemanalesList = document.getElementById('backupsSemanalesList');
+    elements.backupsMensualesList = document.getElementById('backupsMensualesList');
     elements.procesosList = document.getElementById('procesosList');
     
     // Stats
@@ -89,7 +91,9 @@ function initElements() {
     // Counters
     elements.argentinaCounter = document.getElementById('argentinaCounter');
     elements.regionalCounter = document.getElementById('regionalCounter');
-    elements.backupsCounter = document.getElementById('backupsCounter');
+    elements.backupsDiariosCounter = document.getElementById('backupsDiariosCounter');
+    elements.backupsSemanalesCounter = document.getElementById('backupsSemanalesCounter');
+    elements.backupsMensualesCounter = document.getElementById('backupsMensualesCounter');
     elements.procesosCounter = document.getElementById('procesosCounter');
     
     // Modal
@@ -599,19 +603,24 @@ function getPollingStatus(task) {
 }
 
 function renderBackups() {
-    if (!elements.backupsList) return;
-    
-    const templateTasks = NOC_TASKS.backups?.tasks || [];
-    elements.backupsList.innerHTML = '';
-    
+    // Render backups by frequency
+    renderBackupsByFrequency('backups_diarios', elements.backupsDiariosList);
+    renderBackupsByFrequency('backups_semanales', elements.backupsSemanalesList);
+    renderBackupsByFrequency('backups_mensuales', elements.backupsMensualesList);
+}
+
+function renderBackupsByFrequency(categoryKey, container) {
+    if (!container) return;
+
+    const templateTasks = NOC_TASKS[categoryKey]?.tasks || [];
+    container.innerHTML = '';
+
     templateTasks.forEach(templateTask => {
         const task = state.tasks.find(t => t.templateId === templateTask.id);
-        
+
         const row = document.createElement('div');
         row.className = `backup-row ${task?.beginTime && task?.endTime ? 'completed' : ''}`;
-        
-        const status = getPollingStatus(task);
-        
+
         row.innerHTML = `
             <div class="backup-col backup-col-name">
                 <span>💾</span>
@@ -621,26 +630,23 @@ function renderBackups() {
                 <span class="job-badge">${templateTask.job || '-'}</span>
             </div>
             <div class="backup-col backup-col-begin">
-                ${task?.beginTime 
-                    ? `<input type="time" class="time-input" value="${task.beginTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'beginTime', this.value)">` 
+                ${task?.beginTime
+                    ? `<input type="time" class="time-input" value="${task.beginTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'beginTime', this.value)">`
                     : `<input type="time" class="time-input" onchange="updateTaskTime('', '${templateTask.id}', 'beginTime', this.value)">`
                 }
             </div>
             <div class="backup-col backup-col-end">
-                ${task?.endTime 
-                    ? `<input type="time" class="time-input" value="${task.endTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'endTime', this.value)">` 
+                ${task?.endTime
+                    ? `<input type="time" class="time-input" value="${task.endTime}" onchange="updateTaskTime('${task?.id || ''}', '${templateTask.id}', 'endTime', this.value)">`
                     : `<input type="time" class="time-input" onchange="updateTaskTime('', '${templateTask.id}', 'endTime', this.value)">`
                 }
             </div>
             <div class="backup-col backup-col-duration">
                 <span class="duration-value">${task?.duration || '-'}</span>
             </div>
-            <div class="backup-col backup-col-status">
-                <span class="status-badge ${status.class}">${status.label}</span>
-            </div>
         `;
-        
-        elements.backupsList.appendChild(row);
+
+        container.appendChild(row);
     });
 }
 
@@ -779,7 +785,7 @@ function updateStats() {
     elements.argentinaCount.textContent = `${argentinaCompleted}/${argentinaTotal}`;
     elements.argentinaProgress.style.width = argentinaTotal ? `${(argentinaCompleted / argentinaTotal) * 100}%` : '0%';
     elements.argentinaCounter.textContent = `${argentinaCompleted}/${argentinaTotal} completados`;
-    
+
     // Regional stats
     const regionalTasks = NOC_TASKS.pollings_regional?.tasks || [];
     const regionalCompleted = regionalTasks.filter(t => {
@@ -790,18 +796,46 @@ function updateStats() {
     elements.regionalCount.textContent = `${regionalCompleted}/${regionalTotal}`;
     elements.regionalProgress.style.width = regionalTotal ? `${(regionalCompleted / regionalTotal) * 100}%` : '0%';
     elements.regionalCounter.textContent = `${regionalCompleted}/${regionalTotal} completados`;
-    
-    // Backups stats
-    const backupsTasks = NOC_TASKS.backups?.tasks || [];
-    const backupsCompleted = backupsTasks.filter(t => {
+
+    // Backups Diarios stats
+    const backupsDiariosTasks = NOC_TASKS.backups_diarios?.tasks || [];
+    const backupsDiariosCompleted = backupsDiariosTasks.filter(t => {
         const task = state.tasks.find(st => st.templateId === t.id);
         return task?.beginTime && task?.endTime;
     }).length;
-    const backupsTotal = backupsTasks.length;
-    elements.backupsCount.textContent = `${backupsCompleted}/${backupsTotal}`;
-    elements.backupsProgress.style.width = backupsTotal ? `${(backupsCompleted / backupsTotal) * 100}%` : '0%';
-    elements.backupsCounter.textContent = `${backupsCompleted}/${backupsTotal} completados`;
-    
+    const backupsDiariosTotal = backupsDiariosTasks.length;
+    if (elements.backupsDiariosCounter) {
+        elements.backupsDiariosCounter.textContent = `${backupsDiariosCompleted}/${backupsDiariosTotal} completados`;
+    }
+
+    // Backups Semanales stats
+    const backupsSemanalesTasks = NOC_TASKS.backups_semanales?.tasks || [];
+    const backupsSemanalesCompleted = backupsSemanalesTasks.filter(t => {
+        const task = state.tasks.find(st => st.templateId === t.id);
+        return task?.beginTime && task?.endTime;
+    }).length;
+    const backupsSemanalesTotal = backupsSemanalesTasks.length;
+    if (elements.backupsSemanalesCounter) {
+        elements.backupsSemanalesCounter.textContent = `${backupsSemanalesCompleted}/${backupsSemanalesTotal} completados`;
+    }
+
+    // Backups Mensuales stats
+    const backupsMensualesTasks = NOC_TASKS.backups_mensuales?.tasks || [];
+    const backupsMensualesCompleted = backupsMensualesTasks.filter(t => {
+        const task = state.tasks.find(st => st.templateId === t.id);
+        return task?.beginTime && task?.endTime;
+    }).length;
+    const backupsMensualesTotal = backupsMensualesTasks.length;
+    if (elements.backupsMensualesCounter) {
+        elements.backupsMensualesCounter.textContent = `${backupsMensualesCompleted}/${backupsMensualesTotal} completados`;
+    }
+
+    // Total backups for dashboard
+    const totalBackupsCompleted = backupsDiariosCompleted + backupsSemanalesCompleted + backupsMensualesCompleted;
+    const totalBackupsTasks = backupsDiariosTotal + backupsSemanalesTotal + backupsMensualesTotal;
+    elements.backupsCount.textContent = `${totalBackupsCompleted}/${totalBackupsTasks}`;
+    elements.backupsProgress.style.width = totalBackupsTasks ? `${(totalBackupsCompleted / totalBackupsTasks) * 100}%` : '0%';
+
     // Procesos stats
     const procesosTasks = NOC_TASKS.procesos?.tasks || [];
     const procesosCompleted = procesosTasks.filter(t => {
@@ -812,12 +846,12 @@ function updateStats() {
     elements.procesosCount.textContent = `${procesosCompleted}/${procesosTotal}`;
     elements.procesosProgress.style.width = procesosTotal ? `${(procesosCompleted / procesosTotal) * 100}%` : '0%';
     elements.procesosCounter.textContent = `${procesosCompleted}/${procesosTotal} completados`;
-    
+
     // Overall
-    const totalCompleted = argentinaCompleted + regionalCompleted + backupsCompleted + procesosCompleted;
-    const totalTasks = argentinaTotal + regionalTotal + backupsTotal + procesosTotal;
+    const totalCompleted = argentinaCompleted + regionalCompleted + totalBackupsCompleted + procesosCompleted;
+    const totalTasks = argentinaTotal + regionalTotal + totalBackupsTasks + procesosTotal;
     const overallPercent = totalTasks ? Math.round((totalCompleted / totalTasks) * 100) : 0;
-    
+
     elements.overallPercent.textContent = `${overallPercent}%`;
     elements.overallProgressFill.style.width = `${overallPercent}%`;
 }

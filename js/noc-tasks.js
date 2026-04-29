@@ -49,14 +49,39 @@ const NOC_TASKS = {
         ]
     },
     
-    // Backups
-    backups: {
-        name: "Backups AS400",
-        icon: "💾",
+    // Backups Diarios (Lunes a Viernes)
+    backups_diarios: {
+        name: "Backups Diarios",
+        icon: "📅",
+        schedule: "Lunes a Viernes",
         tasks: [
-            { id: 'bkp_regional', name: 'Regional', description: 'Backup Regional', type: 'backup', job: 'BKPDIARIOU' },
-            { id: 'bkp_pinot', name: 'Pinot', description: 'Backup Pinot', type: 'backup', job: 'BKPDIARIO' },
-            { id: 'bkp_semillon', name: 'Semillon', description: 'Backup Semillon', type: 'backup', job: 'BKPDIARIO' }
+            { id: 'bkp_diario_regional', name: 'Regional', description: 'Backup Diario Regional', type: 'backup', job: 'BKPDIARIOU', frequency: 'diario' },
+            { id: 'bkp_diario_pinot', name: 'Pinot', description: 'Backup Diario Pinot', type: 'backup', job: 'BKPDIARIO', frequency: 'diario' },
+            { id: 'bkp_diario_semillon', name: 'Semillon', description: 'Backup Diario Semillon', type: 'backup', job: 'BKPDIARIO', frequency: 'diario' }
+        ]
+    },
+
+    // Backups Semanales (Domingos a la madrugada)
+    backups_semanales: {
+        name: "Backups Semanales",
+        icon: "📆",
+        schedule: "Domingos a la madrugada",
+        tasks: [
+            { id: 'bkp_semanal_regional', name: 'Regional', description: 'Backup Semanal Regional', type: 'backup', job: 'BKPSEMANAL', frequency: 'semanal' },
+            { id: 'bkp_semanal_pinot', name: 'Pinot', description: 'Backup Semanal Pinot', type: 'backup', job: 'BKPSEMANAL', frequency: 'semanal' },
+            { id: 'bkp_semanal_semillon', name: 'Semillon', description: 'Backup Semanal Semillon', type: 'backup', job: 'BKPSEMANAL', frequency: 'semanal' }
+        ]
+    },
+
+    // Backups Mensuales (Primer fin de semana del mes)
+    backups_mensuales: {
+        name: "Backups Mensuales",
+        icon: "🗓️",
+        schedule: "Primer fin de semana del mes",
+        tasks: [
+            { id: 'bkp_mensual_regional', name: 'Regional', description: 'Backup Mensual Regional', type: 'backup', job: 'BKPMENSUAL', frequency: 'mensual' },
+            { id: 'bkp_mensual_pinot', name: 'Pinot', description: 'Backup Mensual Pinot', type: 'backup', job: 'BKPMENSUAL', frequency: 'mensual' },
+            { id: 'bkp_mensual_semillon', name: 'Semillon', description: 'Backup Mensual Semillon', type: 'backup', job: 'BKPMENSUAL', frequency: 'mensual' }
         ]
     },
     

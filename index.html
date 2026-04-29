@@ -330,11 +330,12 @@
                 
                 <!-- Backups View -->
                 <div class="view" id="view-backups">
+                    <!-- Backups Diarios -->
                     <div class="tasks-section">
                         <div class="tasks-section-header">
-                            <h2>💾 Backups AS400</h2>
+                            <h2>📅 Backups Diarios <span class="schedule-badge">Lunes a Viernes</span></h2>
                             <div class="tasks-section-actions">
-                                <span class="task-counter" id="backupsCounter">0/3 completados</span>
+                                <span class="task-counter" id="backupsDiariosCounter">0/3 completados</span>
                             </div>
                         </div>
                         
@@ -345,10 +346,55 @@
                                 <div class="backup-col backup-col-begin">Inicio</div>
                                 <div class="backup-col backup-col-end">Fin</div>
                                 <div class="backup-col backup-col-duration">Duración</div>
-                                <div class="backup-col backup-col-status">Estado</div>
                             </div>
-                            <div class="backup-table-body" id="backupsList">
-                                <!-- Backups will be rendered here -->
+                            <div class="backup-table-body" id="backupsDiariosList">
+                                <!-- Backups Diarios will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backups Semanales -->
+                    <div class="tasks-section">
+                        <div class="tasks-section-header">
+                            <h2>📆 Backups Semanales <span class="schedule-badge">Domingos a la madrugada</span></h2>
+                            <div class="tasks-section-actions">
+                                <span class="task-counter" id="backupsSemanalesCounter">0/3 completados</span>
+                            </div>
+                        </div>
+                        
+                        <div class="backup-table">
+                            <div class="backup-table-header">
+                                <div class="backup-col backup-col-name">Servidor</div>
+                                <div class="backup-col backup-col-job">JOB</div>
+                                <div class="backup-col backup-col-begin">Inicio</div>
+                                <div class="backup-col backup-col-end">Fin</div>
+                                <div class="backup-col backup-col-duration">Duración</div>
+                            </div>
+                            <div class="backup-table-body" id="backupsSemanalesList">
+                                <!-- Backups Semanales will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backups Mensuales -->
+                    <div class="tasks-section">
+                        <div class="tasks-section-header">
+                            <h2>🗓️ Backups Mensuales <span class="schedule-badge">Primer fin de semana del mes</span></h2>
+                            <div class="tasks-section-actions">
+                                <span class="task-counter" id="backupsMensualesCounter">0/3 completados</span>
+                            </div>
+                        </div>
+                        
+                        <div class="backup-table">
+                            <div class="backup-table-header">
+                                <div class="backup-col backup-col-name">Servidor</div>
+                                <div class="backup-col backup-col-job">JOB</div>
+                                <div class="backup-col backup-col-begin">Inicio</div>
+                                <div class="backup-col backup-col-end">Fin</div>
+                                <div class="backup-col backup-col-duration">Duración</div>
+                            </div>
+                            <div class="backup-table-body" id="backupsMensualesList">
+                                <!-- Backups Mensuales will be rendered here -->
                             </div>
                         </div>
                     </div>
