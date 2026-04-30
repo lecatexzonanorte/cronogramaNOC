@@ -56,8 +56,9 @@ const NOC_TASKS = {
         schedule: "Lunes a Viernes",
         tasks: [
             { id: 'bkp_diario_regional', name: 'Regional', description: 'Backup Diario Regional', type: 'backup', job: 'BKPDIARIOU', frequency: 'diario' },
-            { id: 'bkp_diario_mixmix', name: 'Mixmix', description: 'Backup Diario Mixmix', type: 'backup', job: 'BKPDIARIO', frequency: 'diario' },
+            { id: 'bkp_diario_mixmix_reg', name: 'Mixmix', description: 'Backup Diario Mixmix (Regional)', type: 'backup', job: 'BKPDIARIO', frequency: 'diario' },
             { id: 'bkp_diario_pinot', name: 'Pinot', description: 'Backup Diario Pinot', type: 'backup', job: 'BKPDIARIO', frequency: 'diario' },
+            { id: 'bkp_diario_mixmix_pin', name: 'Mixmix', description: 'Backup Diario Mixmix (Pinot)', type: 'backup', job: 'BKPDIARIO', frequency: 'diario' },
             { id: 'bkp_diario_semillon', name: 'Semillon', description: 'Backup Diario Semillon', type: 'backup', job: 'BKPDIARIO', frequency: 'diario' }
         ]
     },
