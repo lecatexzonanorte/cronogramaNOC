@@ -1272,142 +1272,157 @@ async function handleExcelImport(event) {
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         
-        // Convert to JSON
+        // Convert to JSON (array of arrays)
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
         
         if (jsonData.length < 2) {
-            showToast('El archivo está vacío o no tiene datos', 'error');
+            showToast('El archivo está vacío o no tiene datos', 'warning');
             return;
         }
 
-        // Find header row
-        const headers = jsonData[0].map(h => String(h || '').toLowerCase().trim());
-        
-        // Map column indices
-        const colMap = {
-            tarea: -1,
-            polling: -1,
-            nombre: -1,
-            servidor: -1,
-            inicio: -1,
-            begin: -1,
-            fin: -1,
-            end: -1,
-            estado: -1,
-            status: -1
-        };
-
-        headers.forEach((h, i) => {
-            if (h.includes('tarea') || h.includes('polling') || h.includes('nombre') || h.includes('servidor')) {
-                colMap.tarea = i;
-            }
-            if (h.includes('inicio') || h.includes('begin')) {
-                colMap.inicio = i;
-            }
-            if (h.includes('fin') || h.includes('end')) {
-                colMap.fin = i;
-            }
-            if (h.includes('estado') || h.includes('status')) {
-                colMap.estado = i;
-            }
-        });
-
-        // Get all template tasks for matching
-        const allTemplates = getAllNOCTasks();
         let imported = 0;
+        const allTemplates = getAllNOCTasks();
 
-        // Process each data row
+        // Process based on Bitácora NOC format
+        // Column D (index 3) = Polling names
+        // Column G (index 6) = Polling times
+        // Column I (index 8) = Backups/Procesos names
+        // Column K (index 10) = Backup begin time
+        // Column M (index 12) = Backup end time
+        // Column J (index 9) = Proceso status
+
+        let currentPolling = null;
+        let beginTime = null;
+
         for (let i = 1; i < jsonData.length; i++) {
             const row = jsonData[i];
-            if (!row || row.length === 0) continue;
+            if (!row) continue;
 
-            const tareaName = String(row[colMap.tarea] || '').trim();
-            if (!tareaName) continue;
+            // === POLLINGS ===
+            const colD = String(row[3] || '').trim(); // Polling name
+            const colE = String(row[4] || '').trim().toLowerCase(); // Beginni/Ending
+            const colG = row[6]; // Time
 
-            // Find matching template
-            const template = allTemplates.find(t => 
-                t.name.toLowerCase() === tareaName.toLowerCase() ||
-                tareaName.toLowerCase().includes(t.name.toLowerCase()) ||
-                t.name.toLowerCase().includes(tareaName.toLowerCase())
-            );
-
-            if (!template) continue;
-
-            // Get times
-            let beginTime = '';
-            let endTime = '';
-            
-            if (colMap.inicio >= 0) {
-                beginTime = parseExcelTime(row[colMap.inicio]);
-            }
-            if (colMap.fin >= 0) {
-                endTime = parseExcelTime(row[colMap.fin]);
+            if (colD && colD !== 'Pollings de Argentina' && colD !== 'Pollings de Regional' && !colD.startsWith(' ')) {
+                // New polling name
+                currentPolling = colD;
+                beginTime = null;
             }
 
-            // Get status for procesos
-            let status = null;
-            if (colMap.estado >= 0 && template.type === 'proceso') {
-                const statusText = String(row[colMap.estado] || '').toLowerCase();
-                if (statusText.includes('ok') || statusText.includes('✅')) {
-                    status = 'ok';
-                } else if (statusText.includes('error') || statusText.includes('❌')) {
-                    status = 'error';
-                } else if (statusText.includes('n/a') || statusText.includes('—')) {
-                    status = 'na';
+            if (colE.includes('beginni') && colG) {
+                beginTime = parseExcelTime(colG);
+            }
+
+            if (colE.includes('ending') && currentPolling && beginTime) {
+                const endTime = parseExcelTime(colG);
+                
+                // Find matching template
+                const template = allTemplates.find(t => 
+                    t.name.toLowerCase() === currentPolling.toLowerCase() ||
+                    currentPolling.toLowerCase().includes(t.name.toLowerCase())
+                );
+
+                if (template && beginTime && endTime) {
+                    await saveTaskFromExcel(template, beginTime, endTime, null);
+                    imported++;
+                }
+                
+                currentPolling = null;
+                beginTime = null;
+            }
+
+            // === BACKUPS ===
+            const colI = String(row[8] || '').trim(); // Backup server name
+            const colK = row[10]; // Begin time
+            const colM = row[12]; // End time
+
+            if (colI && !colI.startsWith('Procesos') && colK && colM) {
+                const backupBegin = parseExcelTime(colK);
+                const backupEnd = parseExcelTime(colM);
+
+                const template = allTemplates.find(t => 
+                    t.name.toLowerCase() === colI.toLowerCase() ||
+                    colI.toLowerCase().includes(t.name.toLowerCase())
+                );
+
+                if (template && backupBegin && backupEnd) {
+                    await saveTaskFromExcel(template, backupBegin, backupEnd, null);
+                    imported++;
                 }
             }
 
-            // Check if task exists
-            const existingTask = state.tasks.find(t => t.templateId === template.id);
+            // === PROCESOS ===
+            if (colI && !colI.startsWith('Procesos') && String(row[9])) {
+                const status = String(row[9] || '').trim().toUpperCase();
+                
+                // Check if it's in Procesos section (no times, just status)
+                if (!colK && !colM && (status === 'OK' || status === 'ERROR' || status === 'N/A')) {
+                    const template = allTemplates.find(t => 
+                        t.type === 'proceso' && (
+                            t.name.toLowerCase() === colI.toLowerCase() ||
+                            colI.toLowerCase().includes(t.name.toLowerCase())
+                        )
+                    );
 
-            try {
-                if (existingTask) {
-                    // Update existing task
-                    const updateData = { updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
-                    if (beginTime) updateData.beginTime = beginTime;
-                    if (endTime) updateData.endTime = endTime;
-                    if (status) updateData.status = status;
-                    
-                    if (beginTime && endTime) {
-                        updateData.duration = calculateDuration(beginTime, endTime);
+                    if (template) {
+                        let statusValue = 'pending';
+                        if (status === 'OK') statusValue = 'ok';
+                        else if (status === 'ERROR') statusValue = 'error';
+                        else if (status === 'N/A') statusValue = 'na';
+                        
+                        await saveTaskFromExcel(template, null, null, statusValue);
+                        imported++;
                     }
-
-                    await db.collection('tasks').doc(existingTask.id).update(updateData);
-                } else {
-                    // Create new task
-                    const newTask = {
-                        templateId: template.id,
-                        name: template.name,
-                        userId: state.currentUser,
-                        date: getDateKey(),
-                        type: template.type,
-                        category: template.category,
-                        beginTime: beginTime || null,
-                        endTime: endTime || null,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-
-                    if (status) newTask.status = status;
-                    if (beginTime && endTime) {
-                        newTask.duration = calculateDuration(beginTime, endTime);
-                    }
-
-                    await db.collection('tasks').add(newTask);
                 }
-                imported++;
-            } catch (e) {
-                console.error('Error importing task:', e);
             }
         }
 
         showToast(`Importadas ${imported} tareas desde Excel`, 'success');
-        
-        // Clear file input
         event.target.value = '';
         
     } catch (error) {
         console.error('Error reading Excel:', error);
         showToast('Error al leer el archivo Excel', 'error');
+    }
+}
+
+async function saveTaskFromExcel(template, beginTime, endTime, status) {
+    const existingTask = state.tasks.find(t => t.templateId === template.id);
+
+    try {
+        if (existingTask) {
+            const updateData = { updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+            if (beginTime) updateData.beginTime = beginTime;
+            if (endTime) updateData.endTime = endTime;
+            if (status) updateData.status = status;
+            
+            if (beginTime && endTime) {
+                updateData.duration = calculateDuration(beginTime, endTime);
+            }
+
+            await db.collection('tasks').doc(existingTask.id).update(updateData);
+        } else {
+            const newTask = {
+                templateId: template.id,
+                name: template.name,
+                userId: state.currentUser,
+                date: getDateKey(),
+                type: template.type,
+                category: template.category,
+                beginTime: beginTime || null,
+                endTime: endTime || null,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (status) newTask.status = status;
+            if (beginTime && endTime) {
+                newTask.duration = calculateDuration(beginTime, endTime);
+            }
+
+            await db.collection('tasks').add(newTask);
+        }
+    } catch (e) {
+        console.error('Error saving task from Excel:', e);
     }
 }
 
